@@ -1,123 +1,172 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <title>Add New Prospect</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Add New Prospect | Local Business Control Centre</title>
   <style>
-    :root { --bg:#070b15; --panel:#0d1422; --line:rgba(148,163,184,.18); --text:#eef4ff; --muted:#9aa8bd; --blue:#4da3ff; --purple:#7657ff; --green:#30d384; }
-    * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; font-family:Inter, Arial, sans-serif; color:var(--text); background:radial-gradient(circle at 76% -10%, rgba(118,87,255,.28), transparent 34%), radial-gradient(circle at 20% 0%, rgba(77,163,255,.16), transparent 30%), var(--bg); }
-    a { color:inherit; }
-    .wrap { width:min(1040px, calc(100% - 34px)); margin:0 auto; padding:34px 0 54px; }
-    header { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:26px; }
-    h1 { margin:0; font-size:clamp(34px,6vw,64px); line-height:1; }
-    .sub { color:var(--muted); font-size:17px; margin:10px 0 0; max-width:760px; }
-    .back { display:inline-flex; min-height:42px; align-items:center; border:1px solid var(--line); border-radius:10px; padding:0 14px; text-decoration:none; background:rgba(255,255,255,.05); font-weight:850; }
-    .grid { display:grid; grid-template-columns:1fr .9fr; gap:22px; align-items:start; }
-    .card { border:1px solid var(--line); border-radius:18px; background:rgba(13,20,34,.78); box-shadow:0 24px 70px rgba(0,0,0,.36); backdrop-filter:blur(18px); padding:24px; }
-    label { display:block; color:#dbe7f8; font-weight:900; margin:0 0 8px; }
-    .hint { color:var(--muted); font-size:13px; margin:-2px 0 9px; }
-    input, textarea { width:100%; border:1px solid var(--line); border-radius:12px; background:rgba(5,9,17,.74); color:var(--text); padding:13px 14px; font:inherit; outline:none; }
-    textarea { min-height:134px; resize:vertical; }
-    .field { margin-bottom:18px; }
-    .required { color:var(--green); font-size:12px; margin-left:6px; }
-    button { min-height:46px; border:0; border-radius:12px; padding:0 18px; color:#fff; background:linear-gradient(135deg,var(--blue),var(--purple)); font-weight:950; cursor:pointer; box-shadow:0 16px 34px rgba(85,75,255,.28); }
-    pre { white-space:pre-wrap; word-break:break-word; color:#dce9fb; background:#060a12; border:1px solid var(--line); border-radius:14px; padding:16px; min-height:220px; }
-    .copy-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-    .secondary { background:rgba(255,255,255,.07); border:1px solid var(--line); box-shadow:none; }
-    .note { color:#b7c5d8; line-height:1.55; }
-    ul { color:#b7c5d8; padding-left:20px; }
-    li { margin:8px 0; }
-    @media(max-width:850px){ header,.grid{display:block}.back{margin-top:16px}.card{margin-bottom:18px}.wrap{width:min(100% - 26px,1040px)} }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #07111f;
+      color: #f8fafc;
+      padding: 32px;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #0f1b2d;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 34px;
+    }
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: #07111f;
+      color: #fff;
+      padding: 14px;
+      font-size: 16px;
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 22px;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      background: #4da3ff;
+      color: #06111f;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .secondary {
+      display: inline-block;
+      margin-top: 18px;
+      color: #8ab4ff;
+      text-decoration: none;
+    }
+    .result {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(77,163,255,.12);
+      border: 1px solid rgba(77,163,255,.35);
+      display: none;
+    }
+    .error {
+      background: rgba(255,80,80,.12);
+      border-color: rgba(255,80,80,.35);
+    }
+    .result a {
+      color: #8ab4ff;
+      display: block;
+      margin: 8px 0;
+    }
+    .hint {
+      color: #b8c7dc;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <header>
-      <div>
-        <h1>Add New Prospect</h1>
-        <p class="sub">Enter the business name, website or "No website", and a clear description of what kind of site Shane wants to offer.</p>
-      </div>
-      <a class="back" href="index.html">Back to dashboard</a>
-    </header>
+    <a class="secondary" href="/">← Back to dashboard</a>
 
-    <section class="grid">
-      <form class="card" id="prospectForm">
-        <div class="field">
-          <label for="businessName">Business Name <span class="required">Required</span></label>
-          <input id="businessName" required placeholder="Example: Smith & Co Barber Brentwood">
-        </div>
-        <div class="field">
-          <label for="website">Website URL or "No website" <span class="required">Required</span></label>
-          <p class="hint">If they do not have a website, type exactly: No website</p>
-          <input id="website" required placeholder="https://example.co.uk or No website">
-        </div>
-        <div class="field">
-          <label for="description">Business Description / What I'm After <span class="required">Required</span></label>
-          <p class="hint">Explain what the business does and what kind of website you want to create for them.</p>
-          <textarea id="description" required placeholder="Local barber in Brentwood. I want to create a premium modern website showing services, pricing, booking CTA, opening hours, gallery, and local SEO."></textarea>
-        </div>
-        <div class="field">
-          <label for="notes">Notes <span class="hint">Optional</span></label>
-          <textarea id="notes" placeholder="Any manual context, contact clues, preferred angle, or follow-up notes."></textarea>
-        </div>
-        <button type="submit">Generate PowerShell Command</button>
+    <section class="card">
+      <h1>Add New Prospect</h1>
+      <p class="hint">
+        Add a business prospect. Phase 1 checks that the live Cloudflare Function is working.
+        It will not create files until Phase 2 is enabled.
+      </p>
+
+      <form id="prospectForm">
+        <label for="businessName">Business Name</label>
+        <input id="businessName" name="businessName" required placeholder="Example: Brentwood Coffee House">
+
+        <label for="websiteUrl">Website URL or “No website”</label>
+        <input id="websiteUrl" name="websiteUrl" placeholder="https://example.com or No website">
+
+        <label for="description">Business Description / What I’m After</label>
+        <textarea id="description" name="description" required placeholder="Describe the business and what kind of website/prospect you want created."></textarea>
+
+        <label for="notes">Optional Notes</label>
+        <textarea id="notes" name="notes" placeholder="Any extra notes, priority, location, tone, services, etc."></textarea>
+
+        <button id="submitBtn" type="submit">Submit Prospect</button>
       </form>
 
-      <aside class="card">
-        <h2>Generated Command</h2>
-        <p class="note">Copy this command into PowerShell from the control-centre workflow. No email will be sent automatically.</p>
-        <pre id="commandOutput">Fill in the form to generate the command.</pre>
-        <div class="copy-row">
-          <button class="secondary" id="copyCommand" type="button">Copy Command</button>
-          <button class="secondary" id="clearForm" type="button">Clear</button>
-        </div>
-        <h3>What this creates</h3>
-        <ul>
-          <li>Business folder and main <code>website.html</code></li>
-          <li><code>proposal.html</code> using the description</li>
-          <li><code>outreach-email.html</code> draft only</li>
-          <li>SEO audit, profile, notes and status files</li>
-          <li>No automatic sending</li>
-        </ul>
-      </aside>
+      <div id="result" class="result"></div>
     </section>
   </main>
 
   <script>
-    const form = document.querySelector("#prospectForm");
-    const output = document.querySelector("#commandOutput");
-    const copy = document.querySelector("#copyCommand");
-    const clear = document.querySelector("#clearForm");
-    const scriptPath = 'C:\\Users\\ai-bot\\.openclaw\\workspace\\control-centre\\automations\\add-prospect-auto.ps1';
-    function psQuote(value) {
-      return '"' + String(value || "").replace(/`/g, "``").replace(/"/g, '`"') + '"';
-    }
-    function command() {
-      const businessName = document.querySelector("#businessName").value.trim();
-      const website = document.querySelector("#website").value.trim();
-      const description = document.querySelector("#description").value.trim();
-      const notes = document.querySelector("#notes").value.trim();
-      return 'powershell -ExecutionPolicy Bypass -File ' + psQuote(scriptPath) +
-        ' -BusinessName ' + psQuote(businessName) +
-        ' -Website ' + psQuote(website) +
-        ' -Description ' + psQuote(description) +
-        ' -Notes ' + psQuote(notes);
-    }
-    form.addEventListener("submit", (event) => {
+    const form = document.getElementById("prospectForm");
+    const result = document.getElementById("result");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (!form.reportValidity()) return;
-      output.textContent = command();
-    });
-    copy.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(output.textContent);
-      copy.textContent = "Copied";
-      setTimeout(() => copy.textContent = "Copy Command", 1200);
-    });
-    clear.addEventListener("click", () => {
-      form.reset();
-      output.textContent = "Fill in the form to generate the command.";
+
+      result.style.display = "block";
+      result.className = "result";
+      result.innerHTML = "Submitting prospect...";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+
+      const payload = {
+        businessName: document.getElementById("businessName").value,
+        websiteUrl: document.getElementById("websiteUrl").value,
+        description: document.getElementById("description").value,
+        notes: document.getElementById("notes").value
+      };
+
+      try {
+        const response = await fetch("/api/add-prospect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Something went wrong.");
+        }
+
+        result.innerHTML = `
+          <strong>${data.message}</strong>
+          <p>Slug: ${data.slug}</p>
+          <a href="${data.links.website}">Website</a>
+          <a href="${data.links.proposal}">Proposal</a>
+          <a href="${data.links.emailDraft}">Email Draft</a>
+          <a href="${data.links.businessPack}">Business Pack</a>
+        `;
+      } catch (error) {
+        result.className = "result error";
+        result.innerHTML = `<strong>Error:</strong> ${error.message}`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Prospect";
+      }
     });
   </script>
 </body>
