@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -172,6 +172,13 @@
       .gallery-card:first-child, .gallery-card:nth-child(4) { grid-row:auto; grid-column:auto; }
       .final-actions { min-width:0; }
     }
+      /* stock-image-css */
+    .hero-photo img,.signature-visual img,.gallery-card img,.visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;filter:saturate(1.03) contrast(1.02)}
+    .hero-photo:before,.signature-visual:before,.gallery-card:before,.visual:before{z-index:1;pointer-events:none;background:linear-gradient(135deg,rgba(0,0,0,.08),rgba(0,0,0,.18) 68%),linear-gradient(135deg,rgba(255,255,255,.16),transparent 34%)}
+    .hero-photo:after,.signature-visual:after,.gallery-card:after,.visual:after,.gallery-card span{z-index:2;pointer-events:none}
+    .service-image{display:block;width:100%;height:152px;object-fit:cover;border-radius:8px;margin:0 0 18px;box-shadow:0 18px 42px rgba(12,20,31,.12)}
+    .service-card .service-image,.card .service-image{position:relative;z-index:1}
+    .visual{background:#111827}.visual img{filter:saturate(1.05) contrast(1.03) brightness(.9)}
   </style>
 </head>
 <body>
@@ -215,7 +222,7 @@
       </div>
       <div class="hero-visual" aria-label="De'Milia Barber premium visual composition">
         <div class="visual-stage">
-          <div class="hero-photo"></div>
+          <div class="hero-photo"><img src="assets/images/hero.jpg" alt="Premium barbershop chair and mirror for De'Milia Barber website hero" loading="lazy"></div>
           <div class="floating-card"><strong>Brentwood</strong><span>Local customers served with care</span></div>
           <div class="visual-badges"><span>Cuts</span><span>Fades</span><span>Beards</span><span>Grooming</span></div>
         </div>
@@ -235,38 +242,32 @@
           <p>Each service is presented with a clear benefit, practical detail and a direct enquiry route so visitors can make a decision quickly.</p>
         </div>
         <div class="services-grid">
-          <article class="service-card">
-            <div class="service-icon">01</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-1.jpg" alt="Barber tools and grooming detail for service section" loading="lazy"><div class="service-icon">01</div>
             <h3>Precision skin fades</h3>
             <p>Clean fade work, crisp edges and a detailed finish for customers who want a sharp modern cut.</p>
             <a href="#contact">Enquire about precision skin fades</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">02</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-2.jpg" alt="Modern barbershop interior for service section" loading="lazy"><div class="service-icon">02</div>
             <h3>Classic barber cuts</h3>
             <p>Traditional scissor and clipper cuts shaped for everyday style, easy maintenance and confidence.</p>
             <a href="#contact">Enquire about classic barber cuts</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">03</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-3.jpg" alt="Classic grooming tools for service section" loading="lazy"><div class="service-icon">03</div>
             <h3>Beard trims and line work</h3>
             <p>Beard shaping, tidy lines and finishing touches that sharpen the full grooming look.</p>
             <a href="#contact">Enquire about beard trims and line work</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">04</div>
+          <article class="service-card"><div class="service-icon">04</div>
             <h3>Restyle appointments</h3>
             <p>A more considered cut for customers changing length, shape or overall style.</p>
             <a href="#contact">Enquire about restyle appointments</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">05</div>
+          <article class="service-card"><div class="service-icon">05</div>
             <h3>Quick tidy-ups</h3>
             <p>Practical grooming for customers who need a clean-up between full cuts.</p>
             <a href="#contact">Enquire about quick tidy-ups</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">06</div>
+          <article class="service-card"><div class="service-icon">06</div>
             <h3>Regular grooming plans</h3>
             <p>A repeat-booking friendly structure for loyal customers who want to stay sharp.</p>
             <a href="#contact">Enquire about regular grooming plans</a>
@@ -282,7 +283,7 @@
           <p>A premium haircut and beard-shaping offer presented as a high-value grooming choice, ideal for customers who want the complete finish before a weekend, meeting or night out.</p>
           <ul><li>Consultation before the cut</li><li>Fade or classic finish</li><li>Beard line and shape</li><li>Styling guidance</li></ul>
         </div>
-        <div class="signature-visual" aria-label="The Sharp Finish Package visual"></div>
+        <div class="signature-visual" aria-label="The Sharp Finish Package visual"><img src="assets/images/gallery-1.jpg" alt="Sharp barber chair detail for gallery" loading="lazy"></div>
       </div>
     </section>
 
@@ -357,28 +358,22 @@
           <p>Designed image-style panels give the site a polished commercial feel without relying on copyrighted photography or broken image links.</p>
         </div>
         <div class="gallery-grid">
-          <article class="gallery-card gallery-card-1">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-1"><img src="assets/images/gallery-1.jpg" alt="Sharp barber chair detail for gallery" loading="lazy"><div class="grain"></div>
             <span>Fade Detail</span>
           </article>
-          <article class="gallery-card gallery-card-2">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-2"><img src="assets/images/gallery-2.jpg" alt="Barbershop mirror and workstation for gallery" loading="lazy"><div class="grain"></div>
             <span>Classic Chair</span>
           </article>
-          <article class="gallery-card gallery-card-3">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-3"><img src="assets/images/gallery-3.jpg" alt="Traditional grooming tools for gallery" loading="lazy"><div class="grain"></div>
             <span>Beard Shape</span>
           </article>
-          <article class="gallery-card gallery-card-4">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-4"><img src="assets/images/service-1.jpg" alt="Barber tools and grooming detail for service section" loading="lazy"><div class="grain"></div>
             <span>Mirror Finish</span>
           </article>
-          <article class="gallery-card gallery-card-5">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-5"><img src="assets/images/service-2.jpg" alt="Modern barbershop interior for service section" loading="lazy"><div class="grain"></div>
             <span>Sharp Tools</span>
           </article>
-          <article class="gallery-card gallery-card-6">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-6"><img src="assets/images/service-3.jpg" alt="Classic grooming tools for service section" loading="lazy"><div class="grain"></div>
             <span>Ready To Go</span>
           </article>
         </div>
@@ -409,17 +404,17 @@
         </div>
         <div class="reviews-grid">
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"Sharp cut, proper attention to detail and a confident barber shop feel."</blockquote>
             <figcaption>Example testimonial 1 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"Clean fade and tidy beard work. Easy to call and easy to visit."</blockquote>
             <figcaption>Example testimonial 2 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"A strong local barber experience with a premium finish."</blockquote>
             <figcaption>Example testimonial 3 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
@@ -526,3 +521,4 @@
   </footer>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -172,6 +172,13 @@
       .gallery-card:first-child, .gallery-card:nth-child(4) { grid-row:auto; grid-column:auto; }
       .final-actions { min-width:0; }
     }
+      /* stock-image-css */
+    .hero-photo img,.signature-visual img,.gallery-card img,.visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;filter:saturate(1.03) contrast(1.02)}
+    .hero-photo:before,.signature-visual:before,.gallery-card:before,.visual:before{z-index:1;pointer-events:none;background:linear-gradient(135deg,rgba(0,0,0,.08),rgba(0,0,0,.18) 68%),linear-gradient(135deg,rgba(255,255,255,.16),transparent 34%)}
+    .hero-photo:after,.signature-visual:after,.gallery-card:after,.visual:after,.gallery-card span{z-index:2;pointer-events:none}
+    .service-image{display:block;width:100%;height:152px;object-fit:cover;border-radius:8px;margin:0 0 18px;box-shadow:0 18px 42px rgba(12,20,31,.12)}
+    .service-card .service-image,.card .service-image{position:relative;z-index:1}
+    .visual{background:#111827}.visual img{filter:saturate(1.05) contrast(1.03) brightness(.9)}
   </style>
 </head>
 <body>
@@ -215,7 +222,7 @@
       </div>
       <div class="hero-visual" aria-label="Shenfield Vehicle Services premium visual composition">
         <div class="visual-stage">
-          <div class="hero-photo"></div>
+          <div class="hero-photo"><img src="assets/images/hero.jpg" alt="Clean vehicle service workshop for Shenfield Vehicle Services website hero" loading="lazy"></div>
           <div class="floating-card"><strong>Shenfield</strong><span>Local customers served with care</span></div>
           <div class="visual-badges"><span>Service</span><span>MOT</span><span>Diagnostics</span><span>Repairs</span></div>
         </div>
@@ -235,38 +242,32 @@
           <p>Each service is presented with a clear benefit, practical detail and a direct enquiry route so visitors can make a decision quickly.</p>
         </div>
         <div class="services-grid">
-          <article class="service-card">
-            <div class="service-icon">01</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-1.jpg" alt="Automotive workshop tools for service section" loading="lazy"><div class="service-icon">01</div>
             <h3>Interim servicing</h3>
             <p>Routine checks and practical maintenance for drivers who want dependable day-to-day vehicle care.</p>
             <a href="#contact">Enquire about interim servicing</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">02</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-2.jpg" alt="Vehicle diagnostic equipment for service section" loading="lazy"><div class="service-icon">02</div>
             <h3>Full servicing</h3>
             <p>More complete inspection, maintenance advice and parts guidance for longer-term reliability.</p>
             <a href="#contact">Enquire about full servicing</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">03</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-3.jpg" alt="Car maintenance detail with no number plate for service section" loading="lazy"><div class="service-icon">03</div>
             <h3>Vehicle diagnostics</h3>
             <p>Clear fault-finding for warning lights, running issues and performance concerns.</p>
             <a href="#contact">Enquire about vehicle diagnostics</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">04</div>
+          <article class="service-card"><div class="service-icon">04</div>
             <h3>Brakes, tyres and safety checks</h3>
             <p>Safety-led inspection and repair advice for the parts customers rely on most.</p>
             <a href="#contact">Enquire about brakes, tyres and safety checks</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">05</div>
+          <article class="service-card"><div class="service-icon">05</div>
             <h3>MOT preparation</h3>
             <p>Checks and repair guidance to help customers prepare before MOT deadlines.</p>
             <a href="#contact">Enquire about mot preparation</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">06</div>
+          <article class="service-card"><div class="service-icon">06</div>
             <h3>Repair enquiries</h3>
             <p>A straightforward route for drivers to describe an issue and request practical advice.</p>
             <a href="#contact">Enquire about repair enquiries</a>
@@ -282,7 +283,7 @@
           <p>A practical diagnostic appointment focused on explaining the issue, showing the next steps and helping customers make confident repair decisions.</p>
           <ul><li>Fault description before arrival</li><li>Diagnostic inspection</li><li>Clear repair recommendation</li><li>Booking route for next steps</li></ul>
         </div>
-        <div class="signature-visual" aria-label="The Clear Diagnosis Visit visual"></div>
+        <div class="signature-visual" aria-label="The Clear Diagnosis Visit visual"><img src="assets/images/gallery-1.jpg" alt="Professional garage tool visual for gallery" loading="lazy"></div>
       </div>
     </section>
 
@@ -357,28 +358,22 @@
           <p>Designed image-style panels give the site a polished commercial feel without relying on copyrighted photography or broken image links.</p>
         </div>
         <div class="gallery-grid">
-          <article class="gallery-card gallery-card-1">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-1"><img src="assets/images/gallery-1.jpg" alt="Professional garage tool visual for gallery" loading="lazy"><div class="grain"></div>
             <span>Diagnostics</span>
           </article>
-          <article class="gallery-card gallery-card-2">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-2"><img src="assets/images/gallery-2.jpg" alt="Vehicle servicing bay visual for gallery" loading="lazy"><div class="grain"></div>
             <span>Service Bay</span>
           </article>
-          <article class="gallery-card gallery-card-3">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-3"><img src="assets/images/gallery-3.jpg" alt="Workshop diagnostic and repair visual for gallery" loading="lazy"><div class="grain"></div>
             <span>Brake Check</span>
           </article>
-          <article class="gallery-card gallery-card-4">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-4"><img src="assets/images/service-1.jpg" alt="Automotive workshop tools for service section" loading="lazy"><div class="grain"></div>
             <span>MOT Ready</span>
           </article>
-          <article class="gallery-card gallery-card-5">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-5"><img src="assets/images/service-2.jpg" alt="Vehicle diagnostic equipment for service section" loading="lazy"><div class="grain"></div>
             <span>Workshop Care</span>
           </article>
-          <article class="gallery-card gallery-card-6">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-6"><img src="assets/images/service-3.jpg" alt="Car maintenance detail with no number plate for service section" loading="lazy"><div class="grain"></div>
             <span>Clear Advice</span>
           </article>
         </div>
@@ -409,17 +404,17 @@
         </div>
         <div class="reviews-grid">
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"Straightforward advice, clear communication and practical service."</blockquote>
             <figcaption>Example testimonial 1 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"Quick diagnosis and professional workmanship for everyday vehicle issues."</blockquote>
             <figcaption>Example testimonial 2 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"A convenient Shenfield garage with helpful contact options."</blockquote>
             <figcaption>Example testimonial 3 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
@@ -526,3 +521,4 @@
   </footer>
 </body>
 </html>
+

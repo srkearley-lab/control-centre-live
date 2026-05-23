@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -172,6 +172,13 @@
       .gallery-card:first-child, .gallery-card:nth-child(4) { grid-row:auto; grid-column:auto; }
       .final-actions { min-width:0; }
     }
+      /* stock-image-css */
+    .hero-photo img,.signature-visual img,.gallery-card img,.visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;filter:saturate(1.03) contrast(1.02)}
+    .hero-photo:before,.signature-visual:before,.gallery-card:before,.visual:before{z-index:1;pointer-events:none;background:linear-gradient(135deg,rgba(0,0,0,.08),rgba(0,0,0,.18) 68%),linear-gradient(135deg,rgba(255,255,255,.16),transparent 34%)}
+    .hero-photo:after,.signature-visual:after,.gallery-card:after,.visual:after,.gallery-card span{z-index:2;pointer-events:none}
+    .service-image{display:block;width:100%;height:152px;object-fit:cover;border-radius:8px;margin:0 0 18px;box-shadow:0 18px 42px rgba(12,20,31,.12)}
+    .service-card .service-image,.card .service-image{position:relative;z-index:1}
+    .visual{background:#111827}.visual img{filter:saturate(1.05) contrast(1.03) brightness(.9)}
   </style>
 </head>
 <body>
@@ -215,7 +222,7 @@
       </div>
       <div class="hero-visual" aria-label="The Orchard Cafe premium visual composition">
         <div class="visual-stage">
-          <div class="hero-photo"></div>
+          <div class="hero-photo"><img src="assets/images/hero.jpg" alt="Warm cafe table with coffee and brunch for The Orchard Cafe website hero" loading="lazy"></div>
           <div class="floating-card"><strong>Brentwood</strong><span>Local customers served with care</span></div>
           <div class="visual-badges"><span>Breakfast</span><span>Brunch</span><span>Coffee</span><span>Cakes</span></div>
         </div>
@@ -235,38 +242,32 @@
           <p>Each service is presented with a clear benefit, practical detail and a direct enquiry route so visitors can make a decision quickly.</p>
         </div>
         <div class="services-grid">
-          <article class="service-card">
-            <div class="service-icon">01</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-1.jpg" alt="Fresh breakfast plate for The Orchard Cafe service section" loading="lazy"><div class="service-icon">01</div>
             <h3>All-day breakfast favourites</h3>
             <p>Comforting cafe breakfasts, eggs, toast, grilled sides and familiar favourites prepared for a relaxed local start.</p>
             <a href="#contact">Enquire about all-day breakfast favourites</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">02</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-2.jpg" alt="Artisan coffee cup for The Orchard Cafe service section" loading="lazy"><div class="service-icon">02</div>
             <h3>Fresh coffee and hot drinks</h3>
             <p>Smooth coffee, tea and warming drinks for sit-in catch-ups, takeaway stops and everyday Brentwood routines.</p>
             <a href="#contact">Enquire about fresh coffee and hot drinks</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">03</div>
+          <article class="service-card"><img class="service-image" src="assets/images/service-3.jpg" alt="Cafe pastries and counter display for The Orchard Cafe service section" loading="lazy"><div class="service-icon">03</div>
             <h3>Lunch plates and sandwiches</h3>
             <p>Simple lunch options with fresh fillings, daily specials and satisfying plates for local workers and residents.</p>
             <a href="#contact">Enquire about lunch plates and sandwiches</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">04</div>
+          <article class="service-card"><div class="service-icon">04</div>
             <h3>Cakes, pastries and sweet treats</h3>
             <p>Counter treats and coffee-pairing favourites that make the cafe feel worth stopping for.</p>
             <a href="#contact">Enquire about cakes, pastries and sweet treats</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">05</div>
+          <article class="service-card"><div class="service-icon">05</div>
             <h3>Takeaway and call-ahead orders</h3>
             <p>A clear route for customers who want quick collection without searching through social posts or listings.</p>
             <a href="#contact">Enquire about takeaway and call-ahead orders</a>
           </article>
-          <article class="service-card">
-            <div class="service-icon">06</div>
+          <article class="service-card"><div class="service-icon">06</div>
             <h3>Small local catering enquiries</h3>
             <p>A friendly option for office lunches, small gatherings and regular community orders.</p>
             <a href="#contact">Enquire about small local catering enquiries</a>
@@ -282,7 +283,7 @@
           <p>A warm, easy-to-order combination of fresh coffee, breakfast plates, light lunches and cakes. The section gives customers a quick reason to visit today rather than just browse.</p>
           <ul><li>Freshly prepared morning plates</li><li>Coffee and cake pairings</li><li>Simple takeaway ordering</li><li>Clear opening hours</li></ul>
         </div>
-        <div class="signature-visual" aria-label="The Brentwood Brunch Table visual"></div>
+        <div class="signature-visual" aria-label="The Brentwood Brunch Table visual"><img src="assets/images/gallery-1.jpg" alt="Cosy cafe interior visual for The Orchard Cafe gallery" loading="lazy"></div>
       </div>
     </section>
 
@@ -357,28 +358,22 @@
           <p>Designed image-style panels give the site a polished commercial feel without relying on copyrighted photography or broken image links.</p>
         </div>
         <div class="gallery-grid">
-          <article class="gallery-card gallery-card-1">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-1"><img src="assets/images/gallery-1.jpg" alt="Cosy cafe interior visual for The Orchard Cafe gallery" loading="lazy"><div class="grain"></div>
             <span>Counter Coffee</span>
           </article>
-          <article class="gallery-card gallery-card-2">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-2"><img src="assets/images/gallery-2.jpg" alt="Fresh brunch and coffee visual for The Orchard Cafe gallery" loading="lazy"><div class="grain"></div>
             <span>Weekend Brunch</span>
           </article>
-          <article class="gallery-card gallery-card-3">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-3"><img src="assets/images/gallery-3.jpg" alt="Pastry and cafe counter visual for The Orchard Cafe gallery" loading="lazy"><div class="grain"></div>
             <span>Fresh Cakes</span>
           </article>
-          <article class="gallery-card gallery-card-4">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-4"><img src="assets/images/service-1.jpg" alt="Fresh breakfast plate for The Orchard Cafe service section" loading="lazy"><div class="grain"></div>
             <span>Takeaway Lunch</span>
           </article>
-          <article class="gallery-card gallery-card-5">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-5"><img src="assets/images/service-2.jpg" alt="Artisan coffee cup for The Orchard Cafe service section" loading="lazy"><div class="grain"></div>
             <span>Cosy Corner</span>
           </article>
-          <article class="gallery-card gallery-card-6">
-            <div class="grain"></div>
+          <article class="gallery-card gallery-card-6"><img src="assets/images/service-3.jpg" alt="Cafe pastries and counter display for The Orchard Cafe service section" loading="lazy"><div class="grain"></div>
             <span>Local Favourite</span>
           </article>
         </div>
@@ -409,17 +404,17 @@
         </div>
         <div class="reviews-grid">
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"A proper local cafe: warm service, good coffee and a relaxed place to stop."</blockquote>
             <figcaption>Example testimonial 1 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"Fresh breakfast, friendly staff and the kind of place you want nearby."</blockquote>
             <figcaption>Example testimonial 2 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
           <figure>
-            <div class="stars">★★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…â˜…</div>
             <blockquote>"Easy to call ahead, easy to find and lovely for a quick Brentwood lunch."</blockquote>
             <figcaption>Example testimonial 3 - placeholder review, not a verified customer quote.</figcaption>
           </figure>
@@ -512,3 +507,4 @@
   </footer>
 </body>
 </html>
+
