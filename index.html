@@ -62,13 +62,22 @@
     input, select, button { font:inherit; }
     .control { min-height:42px; width:100%; border:1px solid var(--line); border-radius:10px; background:rgba(6,10,18,.72); color:#dce6f5; padding:0 13px; outline:none; }
     .clear { min-height:42px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.04); color:#dce6f5; padding:0 14px; font-weight:850; cursor:pointer; }
-    .table-wrap { overflow:auto; }
-    table { width:100%; min-width:1280px; border-collapse:collapse; }
+    .bulk-actions { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 16px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.025); }
+    .selected-count { color:#b8c4d7; font-size:13px; font-weight:800; }
+    .delete-selected { min-height:38px; border:1px solid rgba(255,92,115,.34); border-radius:10px; background:rgba(255,92,115,.12); color:#ffd7dd; padding:0 14px; font-weight:900; cursor:pointer; }
+    .delete-selected:disabled { opacity:.45; cursor:not-allowed; }
+    .table-wrap { max-height:430px; overflow:auto; }
+    table { width:100%; min-width:1340px; border-collapse:collapse; }
     th, td { padding:14px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
-    th { color:#c8d3e3; font-size:12px; letter-spacing:.02em; background:rgba(255,255,255,.025); cursor:pointer; white-space:nowrap; }
+    th { position:sticky; top:0; z-index:2; color:#c8d3e3; font-size:12px; letter-spacing:.02em; background:#111a2b; cursor:pointer; white-space:nowrap; }
+    th.select-col, td.select-col { width:46px; min-width:46px; padding-inline:14px 8px; }
+    th.select-col { cursor:default; }
+    input[type="checkbox"] { width:16px; height:16px; accent-color:var(--blue); cursor:pointer; }
     td { color:#d9e3f2; font-size:13px; }
     .biz { display:flex; align-items:center; gap:12px; min-width:220px; }
-    .avatar { width:42px; height:42px; border-radius:50%; display:grid; place-items:center; background:#fff; color:#0f172a; font-weight:950; box-shadow:0 10px 26px rgba(0,0,0,.22); }
+    .avatar { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; overflow:hidden; background:linear-gradient(135deg,rgba(77,163,255,.22),rgba(48,211,132,.16)); color:#eaf4ff; border:1px solid rgba(255,255,255,.12); font-weight:950; box-shadow:0 10px 26px rgba(0,0,0,.22); }
+    .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+    .avatar.fallback { font-size:19px; }
     .biz strong { display:block; color:#fff; font-size:14px; }
     .biz small { display:block; color:#8fa0b9; margin-top:2px; }
     .muted { color:#95a5bc; }
@@ -76,6 +85,7 @@
     .seo-score { width:52px; height:52px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:950; background:conic-gradient(var(--green) calc(var(--score) * 1%), rgba(255,255,255,.1) 0); position:relative; }
     .seo-score:before { content:""; position:absolute; inset:6px; border-radius:50%; background:#0b1220; }
     .seo-score span { position:relative; z-index:1; }
+    .score-na { display:inline-flex; align-items:center; justify-content:center; min-width:74px; min-height:32px; border-radius:999px; padding:0 10px; color:#dce6f5; background:rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.24); font-size:12px; font-weight:950; }
     .badge { display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:6px 10px; font-size:11px; font-weight:950; white-space:nowrap; }
     .High { color:#fff; background:linear-gradient(135deg,#ff4967,#ff8a3d); }
     .Medium { color:#261300; background:linear-gradient(135deg,#ffb84d,#ffd166); }
@@ -140,7 +150,7 @@
       </header>
 
       <section class="kpis">
-        <article class="kpi blue"><div class="icon">TP</div><strong>7</strong><span>Total Prospects</span><p>Five curated local business opportunities.</p></article>
+        <article class="kpi blue"><div class="icon">TP</div><strong>7</strong><span>Total Prospects</span><p>Curated local business opportunities ready for review.</p></article>
         <article class="kpi amber"><div class="icon">HP</div><strong>4</strong><span>High Priority</span><p>Immediate review candidates for outreach.</p></article>
         <article class="kpi green"><div class="icon">WR</div><strong>7</strong><span>Websites Ready</span><p>Premium one-page website previews created.</p></article>
         <article class="kpi purple"><div class="icon">ED</div><strong>7</strong><span>Emails Drafted</span><p>Drafts ready for manual approval only.</p></article>
@@ -156,10 +166,15 @@
           <select class="control" id="status"><option value="">All statuses</option><option>Ready for review</option></select>
           <button class="clear" id="clear">Clear Filters</button>
         </div>
+        <div class="bulk-actions">
+          <span class="selected-count" id="selectedCount">0 selected</span>
+          <button class="delete-selected" id="deleteSelected" type="button" disabled>Delete selected</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
+                <th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible prospects"></th>
                 <th data-key="name">Business</th>
                 <th data-key="category">Category</th>
                 <th data-key="location">Location</th>
@@ -406,12 +421,88 @@
     const viewNotice = document.querySelector("#viewNotice");
     const viewTitle = document.querySelector("#viewTitle");
     const viewText = document.querySelector("#viewText");
+    const selectedCount = document.querySelector("#selectedCount");
+    const deleteSelected = document.querySelector("#deleteSelected");
+    const selectAll = document.querySelector("#selectAll");
+    const selectedSlugs = new Set();
+    let visibleSlugs = [];
     let viewMode = "dashboard";
     let sortKey = "priority";
     let sortDir = 1;
     function badge(value, kind) {
       const klass = kind === "status" ? "status" : kind === "neutral" ? "neutral" : value;
       return '<span class="badge ' + klass + '">' + value + '</span>';
+    }
+    function hasRealWebsite(row) {
+      const rawUrl = String(row.websiteUrl || "").trim().toLowerCase();
+      const rawStatus = String(row.websiteStatus || "").trim().toLowerCase();
+      if (rawUrl && !["no website","none","n/a","na","null"].includes(rawUrl)) return true;
+      return !/(^|\s)(no dedicated website|no website|missing website|website not found)(\s|$)/.test(rawStatus);
+    }
+    function scoreCell(row, key) {
+      if (!hasRealWebsite(row)) return '<span class="score-na">No website</span>';
+      const value = Number(row[key]);
+      if (!Number.isFinite(value)) return '<span class="score-na">N/A</span>';
+      return '<div class="seo-score" style="--score:' + value + '"><span>' + value + '</span></div>';
+    }
+    function categoryIcon(row) {
+      const text = (String(row.category || "") + " " + String(row.reason || "") + " " + String(row.name || "")).toLowerCase();
+      if (/cafe|coffee|restaurant|bakery/.test(text)) return "CAF";
+      if (/barber|hair/.test(text)) return "BAR";
+      if (/dog|groom|pet/.test(text)) return "PAW";
+      if (/garage|vehicle|car|mot|mechanic|diagnostic/.test(text)) return "CAR";
+      if (/fitness|gym|trainer|recovery|clinic|therapy|wellbeing|mobility/.test(text)) return "FIT";
+      if (/beauty|salon|lashes|nails|aesthetic/.test(text)) return "SPA";
+      return "LB";
+    }
+    function domainFromUrl(value) {
+      try {
+        const url = new URL(value);
+        return url.hostname.replace(/^www\./, "");
+      } catch (error) {
+        return "";
+      }
+    }
+    function avatar(row) {
+      return '<div class="avatar avatar-slot fallback" data-slug="' + row.slug + '">' + categoryIcon(row) + '</div>';
+    }
+    function hydrateAvatars(renderedRows) {
+      renderedRows.forEach(row => {
+        const slot = document.querySelector('.avatar-slot[data-slug="' + row.slug + '"]');
+        if (!slot) return;
+        const candidates = [
+          "/businesses/" + row.slug + "/assets/images/logo.webp",
+          "/businesses/" + row.slug + "/assets/images/logo.png",
+          "/businesses/" + row.slug + "/assets/images/icon.webp",
+          "/businesses/" + row.slug + "/assets/images/icon.png"
+        ];
+        const domain = domainFromUrl(row.websiteUrl || "");
+        if (domain) candidates.push("https://www.google.com/s2/favicons?domain=" + encodeURIComponent(domain) + "&sz=64");
+        let index = 0;
+        const tryNext = () => {
+          if (index >= candidates.length) return;
+          const img = new Image();
+          img.onload = () => {
+            slot.classList.remove("fallback");
+            slot.innerHTML = "";
+            img.alt = row.name + " icon";
+            slot.appendChild(img);
+          };
+          img.onerror = () => {
+            index += 1;
+            tryNext();
+          };
+          img.src = candidates[index];
+        };
+        tryNext();
+      });
+    }
+    function updateSelectionState() {
+      selectedCount.textContent = selectedSlugs.size + (selectedSlugs.size === 1 ? " selected" : " selected");
+      deleteSelected.disabled = selectedSlugs.size === 0;
+      const allVisibleSelected = visibleSlugs.length > 0 && visibleSlugs.every(slug => selectedSlugs.has(slug));
+      selectAll.checked = allVisibleSelected;
+      selectAll.indeterminate = !allVisibleSelected && visibleSlugs.some(slug => selectedSlugs.has(slug));
     }
     function actions(row) {
       const base = "/businesses/" + row.slug + "/";
@@ -439,13 +530,15 @@
         const bv = b[sortKey] || "";
         return String(av).localeCompare(String(bv), undefined, { numeric:true }) * sortDir;
       });
+      visibleSlugs = filtered.map(row => row.slug);
       tbody.innerHTML = filtered.map(row => '<tr class="' + (viewMode === "websites" || viewMode === "proposals" || viewMode === "outreach" ? "row-highlight" : "") + '">' +
-        '<td><div class="biz"><div class="avatar">' + row.initials + '</div><div><strong>' + row.name + '</strong><small>' + row.slug + '</small></div></div></td>' +
+        '<td class="select-col"><input class="row-check" type="checkbox" aria-label="Select ' + row.name + '" data-slug="' + row.slug + '"' + (selectedSlugs.has(row.slug) ? " checked" : "") + '></td>' +
+        '<td><div class="biz">' + avatar(row) + '<div><strong>' + row.name + '</strong><small>' + row.slug + '</small></div></div></td>' +
         '<td>' + row.category + '</td>' +
         '<td class="muted">' + row.location + '</td>' +
         '<td>' + row.websiteStatus + '</td>' +
-        '<td><div class="seo-score" style="--score:' + row.websiteScore + '"><span>' + row.websiteScore + '</span></div></td>' +
-        '<td><div class="seo-score" style="--score:' + row.score + '"><span>' + row.score + '</span></div></td>' +
+        '<td>' + scoreCell(row, "websiteScore") + '</td>' +
+        '<td>' + scoreCell(row, "score") + '</td>' +
         '<td>' + badge(row.priority) + '</td>' +
         '<td class="reason">' + row.reason + '</td>' +
         '<td>' + badge(row.contactFound, "neutral") + '</td>' +
@@ -455,6 +548,13 @@
         '<td class="muted">' + row.nextAction + '</td>' +
         '<td>' + actions(row) + '</td>' +
       '</tr>').join("");
+      tbody.querySelectorAll(".row-check").forEach(input => input.addEventListener("change", () => {
+        if (input.checked) selectedSlugs.add(input.dataset.slug);
+        else selectedSlugs.delete(input.dataset.slug);
+        updateSelectionState();
+      }));
+      hydrateAvatars(filtered);
+      updateSelectionState();
     }
     function clearFilters() {
       search.value = "";
@@ -539,6 +639,43 @@
     }));
     [search, priority, category, statusFilter].forEach(el => el.addEventListener("input", render));
     clear.addEventListener("click", () => { clearFilters(); render(); });
+    selectAll.addEventListener("change", () => {
+      visibleSlugs.forEach(slug => {
+        if (selectAll.checked) selectedSlugs.add(slug);
+        else selectedSlugs.delete(slug);
+      });
+      render();
+    });
+    deleteSelected.addEventListener("click", async () => {
+      const slugs = Array.from(selectedSlugs);
+      if (!slugs.length) return;
+      const confirmed = window.confirm("Delete " + slugs.length + " selected prospect" + (slugs.length === 1 ? "" : "s") + "? This removes their dashboard rows and business folders from GitHub.");
+      if (!confirmed) return;
+      deleteSelected.disabled = true;
+      deleteSelected.textContent = "Deleting...";
+      try {
+        const response = await fetch("/api/delete-prospects", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ slugs })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || "Delete failed.");
+        slugs.forEach(slug => {
+          selectedSlugs.delete(slug);
+          const index = rows.findIndex(row => row.slug === slug);
+          if (index !== -1) rows.splice(index, 1);
+        });
+        render();
+        window.alert(result.message || "Selected prospects deleted. Cloudflare will redeploy shortly.");
+      } catch (error) {
+        window.alert("Could not delete selected prospects: " + (error && error.message ? error.message : error));
+        updateSelectionState();
+      } finally {
+        deleteSelected.textContent = "Delete selected";
+        updateSelectionState();
+      }
+    });
     sideLinks.forEach(link => link.addEventListener("click", (event) => {
       event.preventDefault();
       runView(link.dataset.view);

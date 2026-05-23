@@ -171,12 +171,13 @@ function dashboardRowForProspect({ businessName, slug, websiteUrl, description }
     slug,
     name: businessName,
     initials: initialsForName(businessName),
+    websiteUrl: noWebsite ? "" : websiteUrl,
     category,
     location,
     priority: noWebsite ? "High" : "Medium",
     websiteStatus: noWebsite ? "No dedicated website found" : "Website provided - review recommended",
-    websiteScore: noWebsite ? 52 : 64,
-    score: noWebsite ? 61 : 68,
+    websiteScore: noWebsite ? null : 64,
+    score: noWebsite ? null : 68,
     reason: `New prospect created from Add New Prospect. ${description}`,
     contactFound: "Needs manual check",
     emailDraft: "Drafted",
@@ -246,6 +247,7 @@ function updateDashboardHtml(html, newRow) {
   updated = replaceFirstCountAfterText(updated, "Medium priority", mediumPriority);
   updated = replaceFirstCountAfterText(updated, "Ready", websitesReady);
   updated = replaceFirstCountAfterText(updated, "Drafted", emailsDrafted);
+  updated = updated.replace(/Five curated local business opportunities\./g, "Curated local business opportunities ready for review.");
   updated = updated.replace(/\d+ high-quality local business prospects/g, `${total} high-quality local business prospects`);
   updated = ensureCategoryFilter(updated, newRow.category);
 
