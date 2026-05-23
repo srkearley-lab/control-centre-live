@@ -130,10 +130,11 @@ function inferCategory(description) {
   const text = String(description || "").toLowerCase();
 
   if (/(garden room|garden office|outbuilding|installer|construction|builder)/.test(text)) return "Garden Rooms";
-  if (/(coach|wellbeing|confidence|stress|therapy|therapist|counsellor|counselor)/.test(text)) return "Wellbeing";
+  if (/(coach|wellbeing|confidence|stress|therapy|therapist|counsellor|counselor|clinic|recovery)/.test(text)) return "Wellbeing";
   if (/(personal trainer|fitness|gym|pilates|yoga)/.test(text)) return "Fitness";
+  if (/(beauty|salon|treatment|facial|lashes|nails|aesthetic)/.test(text)) return "Beauty";
   if (/(cafe|coffee|restaurant|food|takeaway|bakery)/.test(text)) return "Cafe";
-  if (/(barber|hair|salon|beauty)/.test(text)) return "Barber";
+  if (/(barber|haircut|grooming shop)/.test(text)) return "Barber";
   if (/(dog|groom|pet)/.test(text)) return "Dog Groomer";
   if (/(garage|vehicle|car|mot|mechanic|diagnostic)/.test(text)) return "Vehicle Services";
 
@@ -271,11 +272,265 @@ function buildIndexHtml() {
 `;
 }
 
+function getWebsiteTheme(category) {
+  const themes = {
+    "Cafe": {
+      bg: "#fff8ed",
+      panel: "#fffaf3",
+      ink: "#2b1b12",
+      muted: "#765f4d",
+      brand: "#9b5c16",
+      brandDark: "#3a2416",
+      accent: "#f2b84b",
+      soft: "#f8ead2",
+      visual: "Cafe counter, warm light, fresh menu board",
+      icon: "CF"
+    },
+    "Barber": {
+      bg: "#f5f2ea",
+      panel: "#fffdf8",
+      ink: "#161616",
+      muted: "#5f5a50",
+      brand: "#b8872f",
+      brandDark: "#101010",
+      accent: "#e0b15a",
+      soft: "#efe4ce",
+      visual: "Chair, mirror, tools, sharp appointment flow",
+      icon: "BR"
+    },
+    "Dog Groomer": {
+      bg: "#f2fbf8",
+      panel: "#ffffff",
+      ink: "#142a2b",
+      muted: "#557174",
+      brand: "#169a8f",
+      brandDark: "#123b45",
+      accent: "#8bd8c7",
+      soft: "#dff5ef",
+      visual: "Clean grooming space, towels, care details",
+      icon: "DG"
+    },
+    "Vehicle Services": {
+      bg: "#f2f6fb",
+      panel: "#ffffff",
+      ink: "#101a2a",
+      muted: "#526172",
+      brand: "#1c6fd1",
+      brandDark: "#0b1d33",
+      accent: "#6ba6ff",
+      soft: "#dbe8f7",
+      visual: "Workshop bays, diagnostics, service clarity",
+      icon: "VS"
+    },
+    "Garage": {
+      bg: "#f2f6fb",
+      panel: "#ffffff",
+      ink: "#101a2a",
+      muted: "#526172",
+      brand: "#1c6fd1",
+      brandDark: "#0b1d33",
+      accent: "#6ba6ff",
+      soft: "#dbe8f7",
+      visual: "Workshop bays, diagnostics, service clarity",
+      icon: "GR"
+    },
+    "Fitness": {
+      bg: "#f1fbfb",
+      panel: "#ffffff",
+      ink: "#10242d",
+      muted: "#4f6970",
+      brand: "#0796a8",
+      brandDark: "#083046",
+      accent: "#63dbc9",
+      soft: "#dcf7f3",
+      visual: "Training space, progress plan, coaching rhythm",
+      icon: "FT"
+    },
+    "Wellbeing": {
+      bg: "#f1fbfb",
+      panel: "#ffffff",
+      ink: "#10242d",
+      muted: "#4f6970",
+      brand: "#0796a8",
+      brandDark: "#083046",
+      accent: "#63dbc9",
+      soft: "#dcf7f3",
+      visual: "Calm consultation, clear plan, steady support",
+      icon: "WB"
+    },
+    "Beauty": {
+      bg: "#fff7f4",
+      panel: "#ffffff",
+      ink: "#2c1b20",
+      muted: "#765d64",
+      brand: "#c27685",
+      brandDark: "#42232d",
+      accent: "#f0c9b8",
+      soft: "#f8e7df",
+      visual: "Treatment room, soft light, refined booking",
+      icon: "BY"
+    }
+  };
+
+  return themes[category] || {
+    bg: "#f4f7ff",
+    panel: "#ffffff",
+    ink: "#111827",
+    muted: "#586579",
+    brand: "#5b61f0",
+    brandDark: "#111a3d",
+    accent: "#7bb7ff",
+    soft: "#e8ecff",
+    visual: "Premium service preview, local trust, simple enquiry",
+    icon: "LB"
+  };
+}
+
+function getWebsiteCopy(category, businessName, description) {
+  const fallback = {
+    badge: "Local service website demo",
+    headline: `A premium local website concept for ${businessName}`,
+    subhead: `A polished one-page demo built around the submitted brief: ${description}`,
+    services: [
+      ["Clear offer", "Present the core service quickly so visitors understand the value in seconds."],
+      ["Local trust", "Show location, credibility and helpful proof points before customers compare alternatives."],
+      ["Simple enquiry path", "Guide visitors toward a call, message or consultation without clutter."]
+    ],
+    reasons: [
+      "Sharper first impression for mobile and desktop visitors.",
+      "More confidence around services, location and next steps.",
+      "A stronger base for local SEO and manual outreach."
+    ],
+    gallery: ["Hero concept", "Service cards", "Trust section"]
+  };
+
+  const byCategory = {
+    "Cafe": {
+      badge: "Cafe website demo",
+      headline: `Turn local cafe searches into visits for ${businessName}`,
+      subhead: "A warm, menu-led website concept that makes opening times, atmosphere and customer visits easier to understand.",
+      services: [
+        ["Menu highlights", "Feature signature coffee, brunch options and popular daily choices without overloading the page."],
+        ["Visit planning", "Make location, opening times and booking or takeaway calls easy to find."],
+        ["Atmosphere", "Use warm visual panels and local copy to make the cafe feel inviting before customers arrive."]
+      ],
+      reasons: ["Clear menu and visit information.", "Better mobile path for nearby customers.", "Local search copy for cafe and brunch intent."],
+      gallery: ["Coffee bar", "Brunch table", "Warm interior"]
+    },
+    "Barber": {
+      badge: "Barber website demo",
+      headline: `A sharper booking-focused website for ${businessName}`,
+      subhead: "A premium barber shop concept built around services, style, trust and quick appointment enquiries.",
+      services: [
+        ["Cuts and grooming", "Show key services clearly so customers know what to book."],
+        ["Price confidence", "Frame service options and consultation notes in a tidy, easy-to-scan way."],
+        ["Fast booking", "Make phone, booking and location details prominent on every device."]
+      ],
+      reasons: ["Stronger style-led presentation.", "Clearer service and appointment flow.", "Better local search foundation for barber terms."],
+      gallery: ["Chair setup", "Tool detail", "Shop interior"]
+    },
+    "Dog Groomer": {
+      badge: "Dog grooming website demo",
+      headline: `A calmer, clearer grooming website for ${businessName}`,
+      subhead: "A friendly local concept that helps owners understand services, care standards and how to request an appointment.",
+      services: [
+        ["Grooming packages", "Group washes, trims and care options into clear service blocks."],
+        ["Care and trust", "Use reassuring copy around handling, cleanliness and comfort."],
+        ["Easy enquiries", "Make it simple for owners to ask about availability and their dog's needs."]
+      ],
+      reasons: ["More reassuring first impression.", "Clearer package and appointment structure.", "Local copy for dog grooming searches."],
+      gallery: ["Grooming table", "Care products", "Fresh finish"]
+    },
+    "Vehicle Services": {
+      badge: "Garage website demo",
+      headline: `A more trusted workshop website for ${businessName}`,
+      subhead: "A practical service-led demo for diagnostics, repairs and local driver enquiries.",
+      services: [
+        ["Core services", "Surface MOT, diagnostics, servicing and repairs in a clean service grid."],
+        ["Trust signals", "Make experience, process and transparent contact routes easy to see."],
+        ["Driver enquiries", "Guide customers from problem to booking request quickly."]
+      ],
+      reasons: ["More professional workshop positioning.", "Clearer service routes for drivers.", "Local SEO around repairs and diagnostics."],
+      gallery: ["Workshop bay", "Diagnostics", "Service desk"]
+    },
+    "Garage": {
+      badge: "Garage website demo",
+      headline: `A more trusted workshop website for ${businessName}`,
+      subhead: "A practical service-led demo for diagnostics, repairs and local driver enquiries.",
+      services: [
+        ["Core services", "Surface MOT, diagnostics, servicing and repairs in a clean service grid."],
+        ["Trust signals", "Make experience, process and transparent contact routes easy to see."],
+        ["Driver enquiries", "Guide customers from problem to booking request quickly."]
+      ],
+      reasons: ["More professional workshop positioning.", "Clearer service routes for drivers.", "Local SEO around repairs and diagnostics."],
+      gallery: ["Workshop bay", "Diagnostics", "Service desk"]
+    },
+    "Fitness": {
+      badge: "Fitness website demo",
+      headline: `A stronger coaching website for ${businessName}`,
+      subhead: "A confident fitness concept that explains coaching, outcomes and the first enquiry step.",
+      services: [
+        ["Coaching plans", "Show personal training or programme options in a clear, motivating structure."],
+        ["Progress focus", "Frame benefits around routine, confidence and practical results."],
+        ["First session CTA", "Make it easy to request a consultation or availability check."]
+      ],
+      reasons: ["Clearer transformation story.", "Better mobile enquiry path.", "Local SEO foundation for fitness and coaching searches."],
+      gallery: ["Training space", "Progress board", "Coaching plan"]
+    },
+    "Wellbeing": {
+      badge: "Wellbeing website demo",
+      headline: `A calmer, more credible website for ${businessName}`,
+      subhead: "A trust-led concept that explains support, outcomes and the first conversation clearly.",
+      services: [
+        ["Support areas", "Make the problems helped and service approach easy to scan."],
+        ["Trust and tone", "Use calm, professional copy that feels reassuring without overpromising."],
+        ["Soft enquiry", "Invite a first conversation with low-pressure calls to action."]
+      ],
+      reasons: ["Clearer trust and positioning.", "More reassuring mobile experience.", "Better local SEO for support and coaching terms."],
+      gallery: ["Consultation space", "Calm plan", "Support journey"]
+    },
+    "Beauty": {
+      badge: "Beauty website demo",
+      headline: `A refined booking website for ${businessName}`,
+      subhead: "A polished salon-style concept that presents treatments, atmosphere and booking confidence.",
+      services: [
+        ["Treatment menu", "Group services into attractive, easy-to-understand treatment blocks."],
+        ["Premium feel", "Use refined spacing and soft visual panels to lift the perceived quality."],
+        ["Booking path", "Make enquiries and appointments feel simple from any device."]
+      ],
+      reasons: ["More premium first impression.", "Clearer treatment and booking structure.", "Local SEO support for beauty and salon searches."],
+      gallery: ["Treatment room", "Product detail", "Calm finish"]
+    }
+  };
+
+  return byCategory[category] || fallback;
+}
+
 function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
+  const category = inferCategory(description);
+  const theme = getWebsiteTheme(category);
+  const copy = getWebsiteCopy(category, businessName, description);
   const safeName = escapeHtml(businessName);
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
   const safeNotes = escapeHtml(notes || "No additional notes yet.");
+  const safeCategory = escapeHtml(category);
+  const safeBadge = escapeHtml(copy.badge);
+  const safeHeadline = escapeHtml(copy.headline);
+  const safeSubhead = escapeHtml(copy.subhead);
+  const safeVisual = escapeHtml(theme.visual);
+  const safeIcon = escapeHtml(theme.icon);
+  const serviceCards = copy.services.map(([title, body], index) => `
+          <article class="service-card">
+            <div class="mini-visual tone-${index + 1}"><span>${escapeHtml(title)}</span></div>
+            <h3>${escapeHtml(title)}</h3>
+            <p>${escapeHtml(body)}</p>
+          </article>`).join("");
+  const reasonItems = copy.reasons.map(item => `<li>${escapeHtml(item)}</li>`).join("");
+  const galleryCards = copy.gallery.map((label, index) => `
+          <article class="gallery-card gallery-${index + 1}">
+            <span>${escapeHtml(label)}</span>
+          </article>`).join("");
 
   return `<!doctype html>
 <html lang="en">
@@ -287,38 +542,58 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
   <style>
     :root {
       color-scheme: light;
-      --ink: #102033;
-      --muted: #526173;
-      --line: #d9e2ec;
-      --brand: #1267d8;
-      --brand-dark: #0b3b78;
-      --soft: #eef5ff;
-      --panel: #ffffff;
+      --bg: ${theme.bg};
+      --panel: ${theme.panel};
+      --ink: ${theme.ink};
+      --muted: ${theme.muted};
+      --line: color-mix(in srgb, ${theme.brand} 18%, #ffffff);
+      --brand: ${theme.brand};
+      --brand-dark: ${theme.brandDark};
+      --accent: ${theme.accent};
+      --soft: ${theme.soft};
+      --shadow: 0 24px 80px rgba(20, 30, 45, .14);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       color: var(--ink);
-      background: #f7f9fc;
+      background:
+        radial-gradient(circle at 12% 4%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 30%),
+        linear-gradient(180deg, var(--bg), #fff);
       line-height: 1.6;
     }
     a { color: inherit; }
     .shell {
-      width: min(1120px, calc(100% - 40px));
+      width: min(1180px, calc(100% - 40px));
       margin: 0 auto;
     }
     header {
-      background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--accent) 48%, transparent), transparent 28%),
+        linear-gradient(135deg, var(--brand-dark), color-mix(in srgb, var(--brand) 72%, #111827));
       color: #fff;
-      padding: 28px 0 84px;
+      padding: 28px 0 96px;
+    }
+    header:after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -80px -10%;
+      height: 150px;
+      background: var(--bg);
+      transform: skewY(-3deg);
+      transform-origin: left top;
     }
     nav {
+      position: relative;
+      z-index: 1;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 20px;
-      margin-bottom: 72px;
+      margin-bottom: 74px;
     }
     .brand {
       font-size: 20px;
@@ -330,22 +605,37 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       font-size: 14px;
     }
     .hero {
+      position: relative;
+      z-index: 1;
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
-      gap: 40px;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+      gap: 56px;
       align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,.1);
+      color: rgba(255,255,255,.88);
+      font-size: 13px;
+      font-weight: 850;
     }
     h1 {
       margin: 0 0 18px;
-      font-size: clamp(40px, 7vw, 76px);
-      line-height: .96;
+      font-size: clamp(46px, 7vw, 82px);
+      line-height: .94;
       letter-spacing: 0;
     }
     .lead {
       max-width: 680px;
       margin: 0 0 28px;
       color: rgba(255,255,255,.88);
-      font-size: 20px;
+      font-size: 21px;
     }
     .actions {
       display: flex;
@@ -360,53 +650,189 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       border-radius: 999px;
       padding: 12px 20px;
       text-decoration: none;
-      font-weight: 800;
+      font-weight: 900;
     }
-    .primary { background: #fff; color: var(--brand-dark); }
+    .primary { background: #fff; color: var(--brand-dark); box-shadow: 0 18px 50px rgba(0,0,0,.22); }
     .secondary { border: 1px solid rgba(255,255,255,.35); color: #fff; }
     .visual {
-      min-height: 320px;
+      min-height: 450px;
       border: 1px solid rgba(255,255,255,.25);
-      border-radius: 24px;
+      border-radius: 34px;
       background:
-        linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05)),
-        repeating-linear-gradient(135deg, rgba(255,255,255,.12) 0 12px, transparent 12px 24px);
+        linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.06)),
+        radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 60%, transparent), transparent 30%),
+        linear-gradient(135deg, color-mix(in srgb, var(--brand) 70%, #fff), var(--brand-dark));
+      padding: 22px;
+      box-shadow: 0 30px 90px rgba(0,0,0,.32);
+    }
+    .mock-browser {
+      height: 100%;
+      min-height: 405px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(255,255,255,.92);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+    .mock-top {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      height: 42px;
+      padding: 0 16px;
+      background: rgba(15,23,42,.08);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); opacity: .75; }
+    .mock-body {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+    .mock-photo {
+      min-height: 170px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--brand) 62%, transparent), transparent),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.22) 0 18px, rgba(255,255,255,.06) 18px 36px),
+        linear-gradient(135deg, var(--soft), var(--accent));
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+      color: #fff;
+      font-weight: 900;
+      box-shadow: inset 0 -80px 90px rgba(0,0,0,.22);
+    }
+    .mock-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .mock-tile {
+      min-height: 92px;
+      border-radius: 18px;
+      background: var(--soft);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: var(--brand-dark);
+      font-weight: 850;
+    }
+    .mock-pill {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
       display: grid;
       place-items: center;
-      text-align: center;
-      padding: 28px;
-      box-shadow: 0 24px 80px rgba(0,0,0,.25);
-    }
-    .visual strong {
-      display: block;
-      font-size: 26px;
-      margin-bottom: 8px;
+      background: var(--brand-dark);
+      color: #fff;
+      font-weight: 950;
     }
     main { margin-top: -44px; }
     section {
-      padding: 54px 0;
+      padding: 68px 0;
     }
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 34px;
-      box-shadow: 0 18px 50px rgba(15, 33, 58, .08);
+      border-radius: 28px;
+      padding: 38px;
+      box-shadow: var(--shadow);
+    }
+    .trust-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .trust-item {
+      padding: 18px;
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--soft) 78%, #fff);
+      border: 1px solid var(--line);
+    }
+    .trust-item strong { display: block; font-size: 18px; margin-bottom: 4px; }
+    .section-head {
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+    .section-head p {
+      color: var(--muted);
+      font-size: 18px;
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
+      gap: 20px;
     }
-    .card {
+    .service-card, .reason-card {
       background: #fff;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 24px;
       padding: 24px;
+      box-shadow: 0 18px 45px rgba(17,24,39,.07);
+    }
+    .mini-visual {
+      min-height: 135px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      padding: 18px;
+      display: flex;
+      align-items: flex-end;
+      color: #fff;
+      font-weight: 900;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--brand) 74%, transparent), transparent),
+        radial-gradient(circle at 74% 18%, rgba(255,255,255,.46), transparent 26%),
+        linear-gradient(135deg, var(--brand-dark), var(--brand));
+      box-shadow: inset 0 -70px 90px rgba(0,0,0,.2);
+    }
+    .tone-2 { background:
+      linear-gradient(145deg, color-mix(in srgb, var(--accent) 68%, transparent), transparent),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 12px, transparent 12px 24px),
+      linear-gradient(135deg, var(--brand), var(--brand-dark)); }
+    .tone-3 { background:
+      radial-gradient(circle at 24% 20%, rgba(255,255,255,.46), transparent 28%),
+      linear-gradient(135deg, var(--accent), var(--brand)); }
+    .gallery {
+      background: var(--brand-dark);
+      color: #fff;
+    }
+    .gallery .section-head p { color: rgba(255,255,255,.76); }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr .8fr;
+      gap: 18px;
+    }
+    .gallery-card {
+      min-height: 240px;
+      border-radius: 28px;
+      padding: 24px;
+      display: flex;
+      align-items: flex-end;
+      background:
+        linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
+        radial-gradient(circle at 30% 24%, color-mix(in srgb, var(--accent) 70%, transparent), transparent 32%),
+        linear-gradient(135deg, color-mix(in srgb, var(--brand) 80%, #fff), var(--brand-dark));
+      box-shadow: 0 24px 70px rgba(0,0,0,.24);
+      font-size: 22px;
+      font-weight: 950;
+    }
+    .gallery-1 { min-height: 330px; }
+    .gallery-2 {
+      background:
+        linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 14px, transparent 14px 28px),
+        linear-gradient(135deg, var(--accent), var(--brand));
+    }
+    .gallery-3 {
+      background:
+        linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
+        radial-gradient(circle at 76% 20%, rgba(255,255,255,.42), transparent 30%),
+        linear-gradient(135deg, var(--brand-dark), var(--brand));
     }
     h2 {
       margin: 0 0 16px;
-      font-size: 32px;
+      font-size: clamp(32px, 5vw, 52px);
       line-height: 1.1;
     }
     h3 {
@@ -414,18 +840,41 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       font-size: 20px;
     }
     p { margin: 0 0 14px; }
+    ul { margin: 0; padding-left: 22px; }
+    li { margin: 9px 0; }
     .muted { color: var(--muted); }
     .seo {
       background: var(--soft);
       border-block: 1px solid #d7e8ff;
     }
+    .seo-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
+      gap: 24px;
+      align-items: center;
+    }
+    .seo-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
     .cta {
       text-align: center;
-      padding-bottom: 78px;
+      padding: 82px 0;
     }
     .cta .panel {
-      background: var(--brand-dark);
+      background:
+        radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--accent) 50%, transparent), transparent 30%),
+        linear-gradient(135deg, var(--brand-dark), var(--brand));
       color: #fff;
+    }
+    .cta p {
+      max-width: 720px;
+      margin-inline: auto;
+      color: rgba(255,255,255,.82);
+      font-size: 18px;
     }
     .meta {
       margin-top: 20px;
@@ -441,13 +890,14 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
     }
     @media (max-width: 820px) {
       body { background: #fff; }
-      .hero, .grid { grid-template-columns: 1fr; }
+      .hero, .grid, .trust-strip, .gallery-grid, .seo-layout { grid-template-columns: 1fr; }
       header { padding-bottom: 54px; }
       nav { margin-bottom: 44px; align-items: flex-start; flex-direction: column; }
       main { margin-top: 0; }
       .shell { width: min(100% - 28px, 1120px); }
       .panel { padding: 24px; border-radius: 18px; }
       h1 { font-size: 42px; }
+      .visual { min-height: 360px; }
     }
   </style>
 </head>
@@ -460,17 +910,24 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       </nav>
       <div class="hero">
         <div>
-          <h1>A sharper local website for ${safeName}</h1>
-          <p class="lead">${safeDescription}</p>
+          <div class="badge">${safeBadge} / ${safeCategory}</div>
+          <h1>${safeHeadline}</h1>
+          <p class="lead">${safeSubhead}</p>
           <div class="actions">
-            <a class="button primary" href="#contact">Plan the next step</a>
+            <a class="button primary" href="#contact">Request a review</a>
             <a class="button secondary" href="#services">View services</a>
           </div>
         </div>
-        <div class="visual" aria-label="Visual placeholder">
-          <div>
-            <strong>${safeName}</strong>
-            <span>Premium local website preview space</span>
+        <div class="visual" aria-label="Premium website preview mockup">
+          <div class="mock-browser">
+            <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="mock-body">
+              <div class="mock-photo">${safeVisual}</div>
+              <div class="mock-grid">
+                <div class="mock-tile"><span>Premium first impression</span><div class="mock-pill">${safeIcon}</div></div>
+                <div class="mock-tile"><span>Simple enquiry path</span><div class="mock-pill">GO</div></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -479,59 +936,73 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
 
   <main>
     <section>
-      <div class="shell panel">
-        <h2>Built around what local customers need to see first</h2>
-        <p class="muted">This starter page uses the prospect notes as the foundation for a simple, conversion-focused website structure.</p>
-        <p><strong>Current website status:</strong> ${safeWebsite}</p>
-        <p><strong>Notes:</strong> ${safeNotes}</p>
+      <div class="shell panel trust-strip">
+        <div class="trust-item"><strong>Local positioning</strong><span class="muted">Built around the services and area customers search for.</span></div>
+        <div class="trust-item"><strong>Conversion focused</strong><span class="muted">Designed to move visitors from interest to enquiry.</span></div>
+        <div class="trust-item"><strong>Review ready</strong><span class="muted">Demo concept only, ready for business detail checks.</span></div>
       </div>
     </section>
 
     <section id="services">
       <div class="shell">
-        <h2>Services and value</h2>
+        <div class="section-head">
+          <h2>Services presented like a premium local brand</h2>
+          <p>${safeDescription}</p>
+        </div>
         <div class="grid">
-          <article class="card">
-            <h3>Clear offer</h3>
-            <p class="muted">Explain the core service in plain language so visitors immediately understand how the business can help.</p>
-          </article>
-          <article class="card">
-            <h3>Local trust</h3>
-            <p class="muted">Highlight Brentwood and nearby service areas, practical experience, and customer-friendly proof points.</p>
-          </article>
-          <article class="card">
-            <h3>Simple enquiry path</h3>
-            <p class="muted">Give visitors one obvious next action, from calling to requesting availability or booking a consultation.</p>
-          </article>
+${serviceCards}
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Why this website works</h2>
+          <p>A better demo needs more than a nice hero. It needs structure that makes the business easier to trust, understand and contact.</p>
+        </div>
+        <div class="grid">
+          <article class="reason-card"><h3>First impression</h3><p class="muted">A polished visual system helps the business feel established before the visitor reads the detail.</p></article>
+          <article class="reason-card"><h3>Decision support</h3><p class="muted">Service cards, proof points and local messaging reduce uncertainty for new customers.</p></article>
+          <article class="reason-card"><h3>Action path</h3><p class="muted">Calls to action are repeated at natural decision points without making the page feel pushy.</p></article>
         </div>
       </div>
     </section>
 
     <section class="seo">
+      <div class="shell seo-layout">
+        <div>
+          <h2>Local SEO foundation</h2>
+          <p class="muted">This structure gives ${safeName} a cleaner base for local service terms, location relevance and conversion-focused content.</p>
+        </div>
+        <div class="seo-card">
+          <ul>${reasonItems}</ul>
+          <p class="muted"><strong>Current website status:</strong> ${safeWebsite}</p>
+          <p class="muted"><strong>Build notes:</strong> ${safeNotes}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery">
       <div class="shell">
-        <h2>Local SEO foundation</h2>
-        <p class="muted">The page gives ${safeName} a clean search-friendly base for local service terms, location relevance, and clear business positioning.</p>
-        <div class="grid">
-          <article class="card">
-            <h3>Location relevance</h3>
-            <p class="muted">Use Brentwood and surrounding areas naturally throughout the page.</p>
-          </article>
-          <article class="card">
-            <h3>Service intent</h3>
-            <p class="muted">Match headings and page copy to the real problems customers search for.</p>
-          </article>
-          <article class="card">
-            <h3>Conversion signals</h3>
-            <p class="muted">Make enquiries easy with visible calls to action and concise trust-building content.</p>
-          </article>
+        <div class="section-head">
+          <h2>Visual concept direction</h2>
+          <p>CSS-generated image panels keep the page fast, safe and self-contained while giving the demo a stronger agency-built feel.</p>
+        </div>
+        <div class="gallery-grid">
+${galleryCards}
         </div>
       </div>
     </section>
 
     <section id="contact" class="cta">
       <div class="shell panel">
-        <h2>Ready for the next step</h2>
-        <p>This is a basic generated website concept. It can be expanded into a fuller proposal, outreach email, and complete business pack in later phases.</p>
+        <h2>Ready to turn the demo into a real sales conversation?</h2>
+        <p>This concept is designed to show what a more premium local website could look like, then support a manual review before any outreach is sent.</p>
+        <div class="actions" style="justify-content:center;margin-top:26px">
+          <a class="button primary" href="#top">Review the concept</a>
+          <a class="button secondary" href="/businesses/">Open business pack</a>
+        </div>
         <div class="meta">Demo concept only - created as an example website proposal.</div>
       </div>
     </section>
