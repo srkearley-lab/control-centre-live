@@ -94,8 +94,8 @@
     <section class="card">
       <h1>Add New Prospect</h1>
       <p class="hint">
-        Add a business prospect. Phase 1 checks that the live Cloudflare Function is working.
-        It will not create files until Phase 2 is enabled.
+        Add a business prospect. The live Cloudflare Function creates a basic website page
+        and business folder in GitHub.
       </p>
 
       <form id="prospectForm">
@@ -156,8 +156,6 @@
           <strong>${data.message}</strong>
           <p>Slug: ${data.slug}</p>
           <a href="${data.links.website}">Website</a>
-          <a href="${data.links.proposal}">Proposal</a>
-          <a href="${data.links.emailDraft}">Email Draft</a>
           <a href="${data.links.businessPack}">Business Pack</a>
         `;
       } catch (error) {
