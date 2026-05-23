@@ -94,8 +94,8 @@
     <section class="card">
       <h1>Add New Prospect</h1>
       <p class="hint">
-        Add a business prospect. The live Cloudflare Function creates a basic website page
-        and business folder in GitHub.
+        Add a business prospect. The live Cloudflare Function creates a website page,
+        proposal page, email draft and business folder in GitHub.
       </p>
 
       <form id="prospectForm">
@@ -156,6 +156,8 @@
           <strong>${data.message}</strong>
           <p>Slug: ${data.slug}</p>
           <a href="${data.links.website}">Website</a>
+          <a href="${data.links.proposal}">Proposal</a>
+          <a href="${data.links.emailDraft}">Email Draft</a>
           <a href="${data.links.businessPack}">Business Pack</a>
         `;
       } catch (error) {

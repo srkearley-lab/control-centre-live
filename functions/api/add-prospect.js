@@ -385,6 +385,300 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
 `;
 }
 
+function buildProposalHtml({ businessName, websiteUrl, description, notes }) {
+  const safeName = escapeHtml(businessName);
+  const safeWebsite = escapeHtml(websiteUrl || "No website");
+  const safeDescription = escapeHtml(description);
+  const safeNotes = escapeHtml(notes || "No additional notes yet.");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${safeName} | Website Proposal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111827;
+      --muted: #5b6472;
+      --line: #dce3ec;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --brand: #155eef;
+      --brand-dark: #0f2f65;
+      --accent: #eef4ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+    .shell {
+      width: min(1080px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+    header {
+      background: var(--brand-dark);
+      color: #fff;
+      padding: 56px 0;
+    }
+    .eyebrow {
+      margin: 0 0 14px;
+      color: #a9c7ff;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 13px;
+    }
+    h1 {
+      max-width: 860px;
+      margin: 0;
+      font-size: clamp(38px, 6vw, 66px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    .summary {
+      max-width: 760px;
+      margin: 22px 0 0;
+      color: rgba(255,255,255,.82);
+      font-size: 19px;
+    }
+    main { padding: 42px 0 70px; }
+    section {
+      margin-top: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 18px 45px rgba(17, 24, 39, .06);
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+    h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+    p { margin: 0 0 14px; }
+    ul { margin: 0; padding-left: 22px; }
+    li { margin: 8px 0; }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      background: #fff;
+    }
+    .package {
+      background: var(--accent);
+      border-color: #cddcff;
+    }
+    .value {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--brand-dark);
+    }
+    footer {
+      padding: 28px 0;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      background: #fff;
+      font-size: 14px;
+    }
+    @media (max-width: 820px) {
+      .shell { width: min(100% - 28px, 1080px); }
+      .grid { grid-template-columns: 1fr; }
+      section { padding: 22px; border-radius: 16px; }
+      h1 { font-size: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell">
+      <p class="eyebrow">Commercial proposal</p>
+      <h1>A focused website upgrade plan for ${safeName}</h1>
+      <p class="summary">${safeDescription}</p>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section>
+      <h2>Current opportunity</h2>
+      <p><strong>Current website status:</strong> ${safeWebsite}</p>
+      <p class="muted">Based on the submitted prospect details, ${safeName} would benefit from a clearer online presence that explains the offer quickly, builds local trust, and gives visitors an easy next step.</p>
+      <p><strong>Notes:</strong> ${safeNotes}</p>
+    </section>
+
+    <section>
+      <h2>What the current presence may be lacking</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Clear positioning</h3>
+          <p class="muted">Visitors need to understand who the business helps, where it operates, and why it is a good local choice within a few seconds.</p>
+        </article>
+        <article class="card">
+          <h3>Conversion path</h3>
+          <p class="muted">A stronger enquiry route can reduce friction and help interested customers take action without hunting for contact details.</p>
+        </article>
+        <article class="card">
+          <h3>Search relevance</h3>
+          <p class="muted">Local service and location copy can give the business a better foundation for organic discovery over time.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Proposed website improvements</h2>
+      <ul>
+        <li>Premium homepage structure with a strong hero, service messaging, trust signals, and direct call to action.</li>
+        <li>Local SEO copy aligned with the business description and Brentwood-area search intent.</li>
+        <li>Clear visual hierarchy so customers can scan the offer quickly on mobile and desktop.</li>
+        <li>Simple page set that can later expand into a full proposal, outreach, and dashboard workflow.</li>
+      </ul>
+    </section>
+
+    <section class="package">
+      <h2>Suggested package</h2>
+      <p><strong>Local Website Starter Package</strong></p>
+      <p class="muted">A polished single-page website concept, local positioning copy, call-to-action structure, responsive layout, and lightweight SEO foundation.</p>
+      <p class="value">Expected value: a clearer first impression and more consistent enquiry journey.</p>
+      <p class="muted">This does not guarantee search rankings, leads, or revenue. It creates a stronger base that can be tested and improved.</p>
+    </section>
+
+    <section>
+      <h2>Next steps</h2>
+      <ul>
+        <li>Review the website concept for accuracy and tone.</li>
+        <li>Confirm services, location coverage, proof points, and preferred call to action.</li>
+        <li>Replace placeholder language with verified business details.</li>
+        <li>Decide whether to expand into proposal, outreach, and dashboard tracking in the next phase.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">Demo proposal only - created as an example website proposal for ${safeName}.</div>
+  </footer>
+</body>
+</html>
+`;
+}
+
+function buildOutreachEmailHtml({ businessName, websiteUrl, description, notes }) {
+  const safeName = escapeHtml(businessName);
+  const safeWebsite = escapeHtml(websiteUrl || "No website");
+  const safeDescription = escapeHtml(description);
+  const safeNotes = escapeHtml(notes || "No additional notes yet.");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${safeName} | Outreach Email Draft</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182333;
+      --muted: #5d6a7a;
+      --line: #dbe4ef;
+      --panel: #ffffff;
+      --bg: #f5f7fb;
+      --brand: #124d99;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+    .shell {
+      width: min(900px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 42px 0 64px;
+    }
+    header {
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(34px, 6vw, 54px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    .muted { color: var(--muted); }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 18px 45px rgba(24, 35, 51, .07);
+    }
+    .email {
+      white-space: pre-wrap;
+      font-size: 18px;
+    }
+    .meta {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    strong { color: var(--brand); }
+    @media (max-width: 720px) {
+      .panel { padding: 22px; border-radius: 16px; }
+      .email { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>Draft email for ${safeName}</h1>
+      <p class="muted">Draft email only. Nothing has been sent.</p>
+    </header>
+
+    <section class="panel">
+      <p><strong>Subject:</strong> Quick website idea for ${safeName}</p>
+      <div class="email">Hi ${safeName},
+
+I came across ${safeName} and put together a quick website concept/demo based on the business positioning: ${safeDescription}
+
+The idea is simple: make the offer clearer, give local customers an easier route to enquire, and present the business in a more polished way online.
+
+I noticed the current website status is: ${safeWebsite}
+
+No pressure, but if useful I can send over the demo link for a quick look. If it feels relevant, we could then talk through what would need changing to make it accurate for the business.
+
+Best,
+Shane</div>
+      <div class="meta">
+        <p><strong>Notes used:</strong> ${safeNotes}</p>
+        <p>This is a draft only and should be reviewed before any manual outreach.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+`;
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     const data = await request.json();
@@ -412,6 +706,8 @@ export async function onRequestPost({ request, env }) {
 
     const indexPath = `businesses/${slug}/index.html`;
     const websitePath = `businesses/${slug}/website.html`;
+    const proposalPath = `businesses/${slug}/proposal.html`;
+    const emailDraftPath = `businesses/${slug}/outreach-email.html`;
 
     if (await githubFileExists(env, websitePath)) {
       return jsonResponse({
@@ -434,12 +730,28 @@ export async function onRequestPost({ request, env }) {
       `Create basic prospect website for ${businessName}`
     );
 
+    await githubPutFile(
+      env,
+      proposalPath,
+      buildProposalHtml({ businessName, websiteUrl, description, notes }),
+      `Create proposal page for ${businessName}`
+    );
+
+    await githubPutFile(
+      env,
+      emailDraftPath,
+      buildOutreachEmailHtml({ businessName, websiteUrl, description, notes }),
+      `Create outreach email draft for ${businessName}`
+    );
+
     return jsonResponse({
       success: true,
       message: "Basic prospect website created successfully. Cloudflare will redeploy shortly.",
       slug,
       links: {
         website: `/businesses/${slug}/website.html`,
+        proposal: `/businesses/${slug}/proposal.html`,
+        emailDraft: `/businesses/${slug}/outreach-email.html`,
         businessPack: `/businesses/${slug}/`
       }
     });
