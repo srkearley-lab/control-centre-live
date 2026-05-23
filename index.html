@@ -68,7 +68,7 @@
     .selected-count { color:#b8c4d7; font-size:13px; font-weight:800; }
     .delete-selected { min-height:38px; border:1px solid rgba(255,92,115,.34); border-radius:10px; background:rgba(255,92,115,.12); color:#ffd7dd; padding:0 14px; font-weight:900; cursor:pointer; }
     .delete-selected:disabled { opacity:.45; cursor:not-allowed; }
-    .table-wrap { max-height:520px; overflow:auto; }
+    .table-wrap { max-height:650px; overflow:auto; }
     table { width:100%; min-width:1340px; border-collapse:collapse; }
     th, td { padding:14px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
     th { position:sticky; top:0; z-index:2; color:#c8d3e3; font-size:12px; letter-spacing:.02em; background:#111a2b; cursor:pointer; white-space:nowrap; }
@@ -502,7 +502,6 @@
         '<a class="primary" href="' + base + 'website.html">View Website</a>' +
         '<a href="' + base + 'proposal.html">Proposal</a>' +
         '<a href="' + base + 'outreach-email.html">Email Draft</a>' +
-        '<a title="' + row.folderPath + '" href="' + base + '">Business Pack</a>' +
       '</div>';
     }
     async function readJsonResponse(response) {

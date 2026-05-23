@@ -126,6 +126,124 @@ async function githubPutFile(env, path, content, message, sha) {
   return JSON.parse(text);
 }
 
+function normalizeWebsiteUrl(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw || /^(no website|none|n\/a|na|null)$/i.test(raw)) {
+    return "";
+  }
+
+  try {
+    return new URL(raw.includes("://") ? raw : `https://${raw}`).href;
+  } catch (error) {
+    return "";
+  }
+}
+
+function stripTags(value) {
+  return String(value || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function uniqueShortList(items, limit = 6) {
+  const seen = new Set();
+  const output = [];
+
+  for (const item of items) {
+    const clean = stripTags(item).slice(0, 120);
+    const key = clean.toLowerCase();
+    if (!clean || seen.has(key)) continue;
+    seen.add(key);
+    output.push(clean);
+    if (output.length >= limit) break;
+  }
+
+  return output;
+}
+
+function extractAttribute(tag, name) {
+  const pattern = new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i");
+  const match = String(tag || "").match(pattern);
+  return match ? match[1] : "";
+}
+
+function resolveSameDomainAsset(value, baseUrl) {
+  if (!value || /^data:/i.test(value)) return "";
+
+  try {
+    const resolved = new URL(value, baseUrl);
+    const base = new URL(baseUrl);
+    const sameDomain = resolved.hostname.replace(/^www\./, "") === base.hostname.replace(/^www\./, "");
+    const isImage = /\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(resolved.pathname + resolved.search);
+    return sameDomain && isImage ? resolved.href : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function extractWebsiteContext(html, sourceUrl) {
+  const title = stripTags((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "");
+  const descriptionTag = (html.match(/<meta[^>]+name=["']description["'][^>]*>/i) || [])[0] || "";
+  const metaDescription = stripTags(extractAttribute(descriptionTag, "content"));
+  const headingMatches = Array.from(html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)).map(match => match[1]);
+  const headings = uniqueShortList(headingMatches, 8);
+  const imageTags = Array.from(html.matchAll(/<img[^>]+>/gi)).map(match => match[0]);
+  const imageCandidates = uniqueShortList(
+    imageTags.map(tag => resolveSameDomainAsset(extractAttribute(tag, "src") || extractAttribute(tag, "data-src"), sourceUrl)).filter(Boolean),
+    3
+  );
+
+  return {
+    sourceUrl,
+    domain: new URL(sourceUrl).hostname.replace(/^www\./, ""),
+    title,
+    metaDescription,
+    headings,
+    imageCandidates,
+    fetched: true
+  };
+}
+
+async function fetchExistingWebsiteContext(websiteUrl) {
+  const normalizedUrl = normalizeWebsiteUrl(websiteUrl);
+
+  if (!normalizedUrl) {
+    return { fetched: false, reason: "No existing website supplied." };
+  }
+
+  try {
+    const response = await fetch(normalizedUrl, {
+      method: "GET",
+      signal: typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(4500) : undefined,
+      headers: {
+        "accept": "text/html,application/xhtml+xml"
+      }
+    });
+
+    if (!response.ok) {
+      return { fetched: false, sourceUrl: normalizedUrl, reason: `Existing website returned ${response.status}.` };
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType && !contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
+      return { fetched: false, sourceUrl: normalizedUrl, reason: "Existing website did not return HTML." };
+    }
+
+    const html = (await response.text()).slice(0, 220000);
+    return extractWebsiteContext(html, normalizedUrl);
+  } catch (error) {
+    return {
+      fetched: false,
+      sourceUrl: normalizedUrl,
+      reason: `Existing website context unavailable: ${String(error && error.message ? error.message : error)}`
+    };
+  }
+}
+
 function inferCategory(description) {
   const text = String(description || "").toLowerCase();
 
@@ -163,7 +281,8 @@ function initialsForName(name) {
 }
 
 function dashboardRowForProspect({ businessName, slug, websiteUrl, description }) {
-  const noWebsite = !websiteUrl || /^(no website|none|n\/a)$/i.test(websiteUrl.trim());
+  const normalizedWebsiteUrl = normalizeWebsiteUrl(websiteUrl);
+  const noWebsite = !normalizedWebsiteUrl;
   const category = inferCategory(description);
   const location = inferLocation(businessName, description);
 
@@ -171,7 +290,7 @@ function dashboardRowForProspect({ businessName, slug, websiteUrl, description }
     slug,
     name: businessName,
     initials: initialsForName(businessName),
-    websiteUrl: noWebsite ? "" : websiteUrl,
+    websiteUrl: noWebsite ? "" : normalizedWebsiteUrl,
     category,
     location,
     priority: noWebsite ? "High" : "Medium",
@@ -435,7 +554,7 @@ function getWebsiteCopy(category, businessName, description) {
       subhead: "A premium barber shop concept built around services, style, trust and quick appointment enquiries.",
       services: [
         ["Cuts and grooming", "Show key services clearly so customers know what to book."],
-        ["Price confidence", "Frame service options and consultation notes in a tidy, easy-to-scan way."],
+        ["Service confidence", "Frame service options and consultation notes in a tidy, easy-to-scan way."],
         ["Fast booking", "Make phone, booking and location details prominent on every device."]
       ],
       reasons: ["Stronger style-led presentation.", "Clearer service and appointment flow.", "Better local search foundation for barber terms."],
@@ -478,16 +597,16 @@ function getWebsiteCopy(category, businessName, description) {
       gallery: ["Workshop bay", "Diagnostics", "Service desk"]
     },
     "Fitness": {
-      badge: "Fitness website demo",
-      headline: `A stronger coaching website for ${businessName}`,
-      subhead: "A confident fitness concept that explains coaching, outcomes and the first enquiry step.",
+      badge: "Recovery and mobility website demo",
+      headline: `A premium recovery website concept for ${businessName}`,
+      subhead: "A polished sports recovery and mobility concept that helps active adults understand services, trust the clinic and book the next step.",
       services: [
-        ["Coaching plans", "Show personal training or programme options in a clear, motivating structure."],
-        ["Progress focus", "Frame benefits around routine, confidence and practical results."],
-        ["First session CTA", "Make it easy to request a consultation or availability check."]
+        ["Recovery sessions", "Present sports recovery, mobility work and stiffness support in a clear treatment-style service structure."],
+        ["Movement confidence", "Frame outcomes around moving better, recovering faster and returning to training with less uncertainty."],
+        ["Consultation route", "Make it easy to request an assessment, availability check or first recovery session."]
       ],
-      reasons: ["Clearer transformation story.", "Better mobile enquiry path.", "Local SEO foundation for fitness and coaching searches."],
-      gallery: ["Training space", "Progress board", "Coaching plan"]
+      reasons: ["More premium clinic positioning.", "Better mobile enquiry path for gym-goers and runners.", "Local SEO foundation for recovery, mobility and sports clinic searches."],
+      gallery: ["Recovery zone", "Mobility assessment", "Clinic treatment plan"]
     },
     "Wellbeing": {
       badge: "Wellbeing website demo",
@@ -518,7 +637,7 @@ function getWebsiteCopy(category, businessName, description) {
   return byCategory[category] || fallback;
 }
 
-function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
+function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existingContext }) {
   const category = inferCategory(description);
   const theme = getWebsiteTheme(category);
   const copy = getWebsiteCopy(category, businessName, description);
@@ -532,6 +651,21 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
   const safeSubhead = escapeHtml(copy.subhead);
   const safeVisual = escapeHtml(theme.visual);
   const safeIcon = escapeHtml(theme.icon);
+  const heroImage = existingContext && existingContext.imageCandidates && existingContext.imageCandidates[0] ? existingContext.imageCandidates[0] : theme.image;
+  const contextTitle = existingContext && existingContext.title ? existingContext.title : "";
+  const contextDescription = existingContext && existingContext.metaDescription ? existingContext.metaDescription : "";
+  const contextHeadings = existingContext && existingContext.headings && existingContext.headings.length ? existingContext.headings : [];
+  const contextNote = existingContext && existingContext.fetched
+    ? `Redesign context safely read from ${existingContext.domain}.`
+    : (existingContext && existingContext.reason ? existingContext.reason : "No existing website context was available, so the concept uses the submitted brief.");
+  const contextItems = [
+    contextTitle ? `Existing site title: ${contextTitle}` : "",
+    contextDescription ? `Meta description direction: ${contextDescription}` : "",
+    ...contextHeadings.slice(0, 4).map(item => `Observed heading: ${item}`)
+  ].filter(Boolean);
+  const contextList = contextItems.length
+    ? contextItems.map(item => `<li>${escapeHtml(item)}</li>`).join("")
+    : `<li>${escapeHtml(contextNote)}</li>`;
   const serviceCards = copy.services.map(([title, body], index) => `
           <article class="service-card">
             <div class="mini-visual tone-${index + 1}"><span>${escapeHtml(title)}</span></div>
@@ -563,7 +697,7 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       --brand-dark: ${theme.brandDark};
       --accent: ${theme.accent};
       --soft: ${theme.soft};
-      --hero-image: url("${theme.image}");
+      --hero-image: url("${heroImage}");
       --shadow: 0 24px 80px rgba(20, 30, 45, .14);
     }
     * { box-sizing: border-box; }
@@ -1041,11 +1175,24 @@ ${galleryCards}
     <section>
       <div class="shell panel">
         <div class="section-head">
+          <h2>Existing website context</h2>
+          <p>${escapeHtml(contextNote)}</p>
+        </div>
+        <div class="seo-card">
+          <ul>${contextList}</ul>
+          <p class="muted">These signals are used as redesign context only. The demo avoids copying large blocks of text and uses same-domain image assets only when they are reliable; otherwise it falls back to safe stock-style imagery and CSS visual panels.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell panel">
+        <div class="section-head">
           <h2>Questions this website answers quickly</h2>
           <p>Short reassurance points help the page feel useful rather than just decorative.</p>
         </div>
         <div class="grid">
-          <article><h3>What can I ask about?</h3><p class="muted">Services, availability, suitability, pricing guidance and the best next step for the customer.</p></article>
+          <article><h3>What can I ask about?</h3><p class="muted">Services, availability, suitability, consultation guidance and the best next step for the customer.</p></article>
           <article><h3>Is this local to me?</h3><p class="muted">The structure keeps location and local intent visible, supporting both trust and search relevance.</p></article>
           <article><h3>What happens next?</h3><p class="muted">The calls to action keep the next step low-friction: ask, book, request or review before committing.</p></article>
         </div>
@@ -1058,7 +1205,7 @@ ${galleryCards}
         <p>This concept is designed to show what a more premium local website could look like, then support a manual review before any outreach is sent.</p>
         <div class="actions" style="justify-content:center;margin-top:26px">
           <a class="button primary" href="#top">Review the concept</a>
-          <a class="button secondary" href="/businesses/">Open business pack</a>
+          <a class="button secondary" href="#services">Review services</a>
         </div>
         <div class="meta">Demo concept only - created as an example website proposal.</div>
       </div>
@@ -1073,11 +1220,14 @@ ${galleryCards}
 `;
 }
 
-function buildProposalHtml({ businessName, websiteUrl, description, notes }) {
+function buildProposalHtml({ businessName, websiteUrl, description, notes, existingContext }) {
   const safeName = escapeHtml(businessName);
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
   const safeNotes = escapeHtml(notes || "No additional notes yet.");
+  const safeContext = escapeHtml(existingContext && existingContext.fetched
+    ? `Existing website context reviewed from ${existingContext.domain}.`
+    : (existingContext && existingContext.reason ? existingContext.reason : "No existing website context was available."));
 
   return `<!doctype html>
 <html lang="en">
@@ -1204,46 +1354,93 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes }) {
 
   <main class="shell">
     <section>
-      <h2>Current opportunity</h2>
+      <h2>Executive summary</h2>
+      <p>${safeName} has a clear opportunity to present its local offer with more authority, stronger visual direction, and a simpler enquiry journey.</p>
+      <p class="muted">The proposed direction is a premium, mobile-first website demo that helps visitors understand who the business helps, what the service experience feels like, and what to do next. ${safeContext}</p>
+    </section>
+
+    <section>
+      <h2>Current situation</h2>
       <p><strong>Current website status:</strong> ${safeWebsite}</p>
       <p class="muted">Based on the submitted prospect details, ${safeName} would benefit from a clearer online presence that explains the offer quickly, builds local trust, and gives visitors an easy next step.</p>
       <p><strong>Notes:</strong> ${safeNotes}</p>
     </section>
 
     <section>
-      <h2>What the current presence may be lacking</h2>
+      <h2>Opportunity</h2>
       <div class="grid">
         <article class="card">
-          <h3>Clear positioning</h3>
+          <h3>Clearer positioning</h3>
           <p class="muted">Visitors need to understand who the business helps, where it operates, and why it is a good local choice within a few seconds.</p>
         </article>
         <article class="card">
-          <h3>Conversion path</h3>
+          <h3>Better enquiry path</h3>
           <p class="muted">A stronger enquiry route can reduce friction and help interested customers take action without hunting for contact details.</p>
         </article>
         <article class="card">
-          <h3>Search relevance</h3>
+          <h3>Local search relevance</h3>
           <p class="muted">Local service and location copy can give the business a better foundation for organic discovery over time.</p>
         </article>
       </div>
     </section>
 
     <section>
-      <h2>Proposed website improvements</h2>
+      <h2>Recommended improvements</h2>
       <ul>
-        <li>Premium homepage structure with a strong hero, service messaging, trust signals, and direct call to action.</li>
+        <li>Premium homepage structure with a strong hero, service messaging, trust signals, and direct calls to action.</li>
         <li>Local SEO copy aligned with the business description and Brentwood-area search intent.</li>
         <li>Clear visual hierarchy so customers can scan the offer quickly on mobile and desktop.</li>
-        <li>Simple page set that can later expand into a full proposal, outreach, and dashboard workflow.</li>
+        <li>Visual sections that feel specific to the business category, not like placeholder content.</li>
+        <li>Safer redesign handling when an existing website is supplied, using limited context rather than copying content.</li>
       </ul>
     </section>
 
     <section class="package">
-      <h2>Suggested package</h2>
-      <p><strong>Local Website Starter Package</strong></p>
-      <p class="muted">A polished single-page website concept, local positioning copy, call-to-action structure, responsive layout, and lightweight SEO foundation.</p>
-      <p class="value">Expected value: a clearer first impression and more consistent enquiry journey.</p>
-      <p class="muted">This does not guarantee search rankings, leads, or revenue. It creates a stronger base that can be tested and improved.</p>
+      <h2>Recommended package</h2>
+      <p><strong>Premium Local Website Demo Package</strong></p>
+      <p class="muted">A polished one-page website concept, local positioning copy, call-to-action structure, responsive layout, lightweight SEO foundation, proposal support page, and manual outreach draft.</p>
+      <p class="value">Business value: a stronger first impression and a clearer route from visitor interest to enquiry.</p>
+      <p class="muted">This does not guarantee search rankings, leads, sales, or revenue. It creates a stronger base that can be reviewed, tested, and improved.</p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li>Sales-ready website demo tailored to the submitted business description.</li>
+        <li>Responsive structure for mobile and desktop review.</li>
+        <li>Service, trust, local SEO, visual direction, and enquiry sections.</li>
+        <li>Proposal page to support the sales conversation.</li>
+        <li>Concise outreach email draft for manual review only.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Timeline</h2>
+      <div class="grid">
+        <article class="card"><h3>Step 1</h3><p class="muted">Review the demo for accuracy, offer fit, and tone.</p></article>
+        <article class="card"><h3>Step 2</h3><p class="muted">Confirm services, locations, proof points, imagery approach, and preferred enquiry action.</p></article>
+        <article class="card"><h3>Step 3</h3><p class="muted">Turn the approved direction into a refined live-ready version.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Optional add-ons</h2>
+      <ul>
+        <li>Additional service pages for high-intent local searches.</li>
+        <li>Google Business Profile copy refresh and photo guidance.</li>
+        <li>Review capture prompts and testimonial placement.</li>
+        <li>Conversion tracking plan for calls, forms, and important clicks.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Risks of doing nothing</h2>
+      <ul>
+        <li>Potential customers may compare against competitors with clearer, more trustworthy websites.</li>
+        <li>Mobile visitors may leave if services, location, and next steps are not obvious.</li>
+        <li>Local search pages may stay too thin to support long-term organic discovery.</li>
+        <li>Outreach has less impact if the demo does not feel polished enough to start a serious conversation.</li>
+      </ul>
     </section>
 
     <section>
@@ -1252,7 +1449,7 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes }) {
         <li>Review the website concept for accuracy and tone.</li>
         <li>Confirm services, location coverage, proof points, and preferred call to action.</li>
         <li>Replace placeholder language with verified business details.</li>
-        <li>Decide whether to expand into proposal, outreach, and dashboard tracking in the next phase.</li>
+        <li>Agree the highest-value page sections to refine first.</li>
       </ul>
     </section>
   </main>
@@ -1265,11 +1462,14 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes }) {
 `;
 }
 
-function buildOutreachEmailHtml({ businessName, websiteUrl, description, notes }) {
+function buildOutreachEmailHtml({ businessName, websiteUrl, description, notes, existingContext }) {
   const safeName = escapeHtml(businessName);
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
   const safeNotes = escapeHtml(notes || "No additional notes yet.");
+  const contextLine = existingContext && existingContext.fetched
+    ? `I had a quick look at your current site and used it only as light redesign context.`
+    : `I could not rely on an existing website, so I based the idea on the business description.`;
 
   return `<!doctype html>
 <html lang="en">
@@ -1343,16 +1543,16 @@ function buildOutreachEmailHtml({ businessName, websiteUrl, description, notes }
     </header>
 
     <section class="panel">
-      <p><strong>Subject:</strong> Quick website idea for ${safeName}</p>
+      <p><strong>Subject:</strong> Website idea for ${safeName}</p>
       <div class="email">Hi ${safeName},
 
-I came across ${safeName} and put together a quick website concept/demo based on the business positioning: ${safeDescription}
+I came across ${safeName} and put together a short website concept based on the positioning I found: ${safeDescription}
 
-The idea is simple: make the offer clearer, give local customers an easier route to enquire, and present the business in a more polished way online.
+The idea is to show how the offer could feel more polished online, make the main services easier to understand, and give local customers a clearer route to enquire.
 
-I noticed the current website status is: ${safeWebsite}
+${escapeHtml(contextLine)} Current website status: ${safeWebsite}
 
-No pressure, but if useful I can send over the demo link for a quick look. If it feels relevant, we could then talk through what would need changing to make it accurate for the business.
+No pressure. If useful, I can send the demo link over for a quick look. If it feels relevant, we could then talk through what would need changing to make it accurate for the business.
 
 Best,
 Shane</div>
@@ -1400,6 +1600,7 @@ export async function onRequestPost({ request, env }) {
     const dashboardFile = await githubGetFile(env, dashboardPath);
     const dashboardRow = dashboardRowForProspect({ businessName, slug, websiteUrl, description });
     const dashboardUpdate = updateDashboardHtml(dashboardFile.content, dashboardRow);
+    const existingContext = await fetchExistingWebsiteContext(websiteUrl);
 
     if (dashboardUpdate.duplicate) {
       return jsonResponse({
@@ -1425,21 +1626,21 @@ export async function onRequestPost({ request, env }) {
     await githubPutFile(
       env,
       websitePath,
-      buildWebsiteHtml({ businessName, websiteUrl, description, notes }),
-      `Create basic prospect website for ${businessName}`
+      buildWebsiteHtml({ businessName, websiteUrl, description, notes, existingContext }),
+      `Create prospect website for ${businessName}`
     );
 
     await githubPutFile(
       env,
       proposalPath,
-      buildProposalHtml({ businessName, websiteUrl, description, notes }),
+      buildProposalHtml({ businessName, websiteUrl, description, notes, existingContext }),
       `Create proposal page for ${businessName}`
     );
 
     await githubPutFile(
       env,
       emailDraftPath,
-      buildOutreachEmailHtml({ businessName, websiteUrl, description, notes }),
+      buildOutreachEmailHtml({ businessName, websiteUrl, description, notes, existingContext }),
       `Create outreach email draft for ${businessName}`
     );
 
@@ -1458,8 +1659,7 @@ export async function onRequestPost({ request, env }) {
       links: {
         website: `/businesses/${slug}/website.html`,
         proposal: `/businesses/${slug}/proposal.html`,
-        emailDraft: `/businesses/${slug}/outreach-email.html`,
-        businessPack: `/businesses/${slug}/`
+        emailDraft: `/businesses/${slug}/outreach-email.html`
       }
     });
   } catch (error) {
