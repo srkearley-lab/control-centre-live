@@ -19,6 +19,10 @@ function toBase64(value) {
   return btoa(unescape(encodeURIComponent(value)));
 }
 
+function fromBase64(value) {
+  return decodeURIComponent(escape(atob(value)));
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -71,18 +75,46 @@ async function githubFileExists(env, path) {
   return true;
 }
 
-async function githubPutFile(env, path, content, message) {
+async function githubGetFile(env, path) {
+  const { owner, repo, branch, token } = getGitHubConfig(env);
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: githubHeaders(token)
+  });
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(`GitHub file fetch failed: ${response.status} ${text}`);
+  }
+
+  const data = JSON.parse(text);
+
+  return {
+    sha: data.sha,
+    content: fromBase64(String(data.content || "").replace(/\s/g, ""))
+  };
+}
+
+async function githubPutFile(env, path, content, message, sha) {
   const { owner, repo, branch, token } = getGitHubConfig(env);
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const body = {
+    message,
+    content: toBase64(content),
+    branch
+  };
+
+  if (sha) {
+    body.sha = sha;
+  }
 
   const response = await fetch(url, {
     method: "PUT",
     headers: githubHeaders(token),
-    body: JSON.stringify({
-      message,
-      content: toBase64(content),
-      branch
-    })
+    body: JSON.stringify(body)
   });
 
   const text = await response.text();
@@ -92,6 +124,134 @@ async function githubPutFile(env, path, content, message) {
   }
 
   return JSON.parse(text);
+}
+
+function inferCategory(description) {
+  const text = String(description || "").toLowerCase();
+
+  if (/(garden room|garden office|outbuilding|installer|construction|builder)/.test(text)) return "Garden Rooms";
+  if (/(coach|wellbeing|confidence|stress|therapy|therapist|counsellor|counselor)/.test(text)) return "Wellbeing";
+  if (/(personal trainer|fitness|gym|pilates|yoga)/.test(text)) return "Fitness";
+  if (/(cafe|coffee|restaurant|food|takeaway|bakery)/.test(text)) return "Cafe";
+  if (/(barber|hair|salon|beauty)/.test(text)) return "Barber";
+  if (/(dog|groom|pet)/.test(text)) return "Dog Groomer";
+  if (/(garage|vehicle|car|mot|mechanic|diagnostic)/.test(text)) return "Vehicle Services";
+
+  return "Local Service";
+}
+
+function inferLocation(businessName, description) {
+  const text = `${businessName} ${description}`.toLowerCase();
+
+  if (text.includes("ingatestone")) return "Ingatestone / Brentwood";
+  if (text.includes("shenfield")) return "Shenfield / Brentwood";
+  if (text.includes("hutton")) return "Hutton / Brentwood";
+  if (text.includes("brentwood")) return "Brentwood";
+  if (text.includes("essex")) return "Essex";
+
+  return "Local area";
+}
+
+function initialsForName(name) {
+  return String(name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0].toUpperCase())
+    .join("") || "LB";
+}
+
+function dashboardRowForProspect({ businessName, slug, websiteUrl, description }) {
+  const noWebsite = !websiteUrl || /^(no website|none|n\/a)$/i.test(websiteUrl.trim());
+  const category = inferCategory(description);
+  const location = inferLocation(businessName, description);
+
+  return {
+    slug,
+    name: businessName,
+    initials: initialsForName(businessName),
+    category,
+    location,
+    priority: noWebsite ? "High" : "Medium",
+    websiteStatus: noWebsite ? "No dedicated website found" : "Website provided - review recommended",
+    websiteScore: noWebsite ? 52 : 64,
+    score: noWebsite ? 61 : 68,
+    reason: `New prospect created from Add New Prospect. ${description}`,
+    contactFound: "Needs manual check",
+    emailDraft: "Drafted",
+    websiteReady: "Ready",
+    status: "Ready for review",
+    nextAction: "Review website, proposal and email draft before manual outreach.",
+    folderPath: `businesses/${slug}`
+  };
+}
+
+function replaceFirstCountBeforeLabel(html, label, value) {
+  const pattern = new RegExp(`(<strong>)\\d+(<\\/strong><span>${label}<\\/span>)`);
+  return html.replace(pattern, `$1${value}$2`);
+}
+
+function replaceFirstCountAfterText(html, text, value) {
+  const pattern = new RegExp(`(${text}<\\/span><b class="count">)\\d+(<\\/b>)`);
+  return html.replace(pattern, `$1${value}$2`);
+}
+
+function ensureCategoryFilter(html, category) {
+  const option = `<option>${category}</option>`;
+
+  if (html.includes(option)) {
+    return html;
+  }
+
+  return html.replace(/(<select class="control" id="category">[\s\S]*?)(<\/select>\s*<select class="control" id="status")/, `$1${option}$2`);
+}
+
+function updateDashboardHtml(html, newRow) {
+  if (html.includes(`"slug": "${newRow.slug}"`) || html.includes(`'slug': '${newRow.slug}'`)) {
+    return {
+      duplicate: true,
+      html
+    };
+  }
+
+  const rowsStart = html.indexOf("    const rows = [");
+  const rowsEnd = html.indexOf("\n];", rowsStart);
+
+  if (rowsStart === -1 || rowsEnd === -1) {
+    throw new Error("Could not find dashboard rows array.");
+  }
+
+  const rowJson = JSON.stringify(newRow, null, 12);
+  const beforeRowsEnd = html.slice(0, rowsEnd);
+  const afterRowsEnd = html.slice(rowsEnd);
+  const needsComma = !beforeRowsEnd.trimEnd().endsWith("[");
+  let updated = `${beforeRowsEnd}${needsComma ? "," : ""}\n      ${rowJson}${afterRowsEnd}`;
+  const totalMatches = Array.from(updated.matchAll(/"slug":\s*"[^"]+"/g));
+  const total = totalMatches.length;
+  const highPriority = Array.from(updated.matchAll(/"priority":\s*"High"/g)).length;
+  const websitesReady = Array.from(updated.matchAll(/"websiteReady":\s*"Ready"/g)).length;
+  const emailsDrafted = Array.from(updated.matchAll(/"emailDraft":\s*"Drafted"/g)).length;
+  const readyForReview = Array.from(updated.matchAll(/"status":\s*"Ready for review"/g)).length;
+  const mediumPriority = Math.max(total - highPriority, 0);
+
+  updated = replaceFirstCountBeforeLabel(updated, "Total Prospects", total);
+  updated = replaceFirstCountBeforeLabel(updated, "High Priority", highPriority);
+  updated = replaceFirstCountBeforeLabel(updated, "Websites Ready", websitesReady);
+  updated = replaceFirstCountBeforeLabel(updated, "Emails Drafted", emailsDrafted);
+  updated = replaceFirstCountBeforeLabel(updated, "Ready For Review", readyForReview);
+  updated = updated.replace(/<span style="--c:var\(--red\)">High Priority: \d+<\/span>/g, `<span style="--c:var(--red)">High Priority: ${highPriority}</span>`);
+  updated = updated.replace(/<span style="--c:var\(--amber\)">Medium Priority: \d+<\/span>/g, `<span style="--c:var(--amber)">Medium Priority: ${mediumPriority}</span>`);
+  updated = replaceFirstCountAfterText(updated, "High priority", highPriority);
+  updated = replaceFirstCountAfterText(updated, "Medium priority", mediumPriority);
+  updated = replaceFirstCountAfterText(updated, "Ready", websitesReady);
+  updated = replaceFirstCountAfterText(updated, "Drafted", emailsDrafted);
+  updated = updated.replace(/\d+ high-quality local business prospects/g, `${total} high-quality local business prospects`);
+  updated = ensureCategoryFilter(updated, newRow.category);
+
+  return {
+    duplicate: false,
+    html: updated
+  };
 }
 
 function buildIndexHtml() {
@@ -708,6 +868,17 @@ export async function onRequestPost({ request, env }) {
     const websitePath = `businesses/${slug}/website.html`;
     const proposalPath = `businesses/${slug}/proposal.html`;
     const emailDraftPath = `businesses/${slug}/outreach-email.html`;
+    const dashboardPath = "index.html";
+    const dashboardFile = await githubGetFile(env, dashboardPath);
+    const dashboardRow = dashboardRowForProspect({ businessName, slug, websiteUrl, description });
+    const dashboardUpdate = updateDashboardHtml(dashboardFile.content, dashboardRow);
+
+    if (dashboardUpdate.duplicate) {
+      return jsonResponse({
+        success: false,
+        message: "This prospect already exists on the dashboard."
+      }, 409);
+    }
 
     if (await githubFileExists(env, websitePath)) {
       return jsonResponse({
@@ -744,9 +915,17 @@ export async function onRequestPost({ request, env }) {
       `Create outreach email draft for ${businessName}`
     );
 
+    await githubPutFile(
+      env,
+      dashboardPath,
+      dashboardUpdate.html,
+      `Add ${businessName} to dashboard`,
+      dashboardFile.sha
+    );
+
     return jsonResponse({
       success: true,
-      message: "Basic prospect website created successfully. Cloudflare will redeploy shortly.",
+      message: "Prospect created and added to dashboard successfully. Cloudflare will redeploy shortly.",
       slug,
       links: {
         website: `/businesses/${slug}/website.html`,
