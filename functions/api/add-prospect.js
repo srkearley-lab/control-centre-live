@@ -1,4 +1,4 @@
-﻿function jsonResponse(body, status = 200) {
+function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body, null, 2), {
     status,
     headers: {
@@ -35,7 +35,7 @@ function escapeHtml(value) {
 function publicNotes(value) {
   const cleaned = String(value || "")
     .split(/(?<=[.!?])\s+/)
-    .filter(sentence => !/\bprices?\b|\bpricing\b|£|\$/.test(sentence))
+    .filter(sentence => !/\bprices?\b|\bpricing\b|Â£|\$/.test(sentence))
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
@@ -259,8 +259,8 @@ function extractLikelyHours(text) {
 }
 
 function extractPublicPrices(html) {
-  const priceBlocks = extractNearbyText(html, /£|\$|\bprice\b|\bfrom\b|\bper\b|\bmenu\b/i, 8)
-    .filter(text => /£|\$|\d+\s*(?:gbp|pounds|pp|per)/i.test(text) || /£\s?\d+/.test(text));
+  const priceBlocks = extractNearbyText(html, /Â£|\$|\bprice\b|\bfrom\b|\bper\b|\bmenu\b/i, 8)
+    .filter(text => /Â£|\$|\d+\s*(?:gbp|pounds|pp|per)/i.test(text) || /Â£\s?\d+/.test(text));
 
   return uniqueShortList(priceBlocks, 6);
 }
@@ -813,816 +813,98 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
   const category = inferCategory(description);
   const theme = getWebsiteTheme(category);
   const copy = getWebsiteCopy(category, businessName, description);
+  const localArea = inferLocalArea(businessName, description, existingContext || {});
+  let finalServices = copy.services;
+
+  if (category === "Fitness") {
+    finalServices = [
+      ["Sports recovery", "Recovery-led sessions for gym-goers, runners and active adults who want to reduce stiffness and keep training with more confidence."],
+      ["Mobility support", "Clear support around movement, range of motion and everyday tightness so visitors can understand where to start."],
+      ["Soft tissue therapy", "A calm, clinical presentation of hands-on recovery work without overpromising outcomes or using vague wellness copy."],
+      ["Movement assessment", "A practical first-step service for people who want to discuss restrictions, training load or recurring stiffness."],
+      ["Recovery planning", "A structured plan section that helps visitors see how recovery can fit around training, work and active routines."],
+      ["Active lifestyle support", "Positioning for people who want to stay active, recover smarter and move better day to day."]
+    ];
+  } else if (existingContext && existingContext.fetched) {
+    const extractedServices = inferServicesFromContext(description, existingContext.headings || [], existingContext.services || []);
+    if (extractedServices.length >= 3) {
+      finalServices = extractedServices.slice(0, 6).map(item => [item, `A dedicated section can explain ${item.toLowerCase()} clearly, show who it helps, and guide visitors toward the right enquiry step.`]);
+    }
+  }
+
+  const publicPrices = existingContext && existingContext.prices ? existingContext.prices : [];
+  const contactDetails = existingContext && existingContext.contactDetails ? existingContext.contactDetails : {};
+  const phoneText = contactDetails.phone || "Details to confirm";
+  const emailText = contactDetails.email || "Details to confirm";
+  const addressText = contactDetails.address || (localArea !== "Local area" ? `Serving ${localArea} and the surrounding area` : "Service area to confirm");
+  const hoursText = contactDetails.hours && contactDetails.hours.length ? contactDetails.hours.join(" / ") : "Details to confirm";
+  const bookingUrl = existingContext && existingContext.fetched ? (contextLink(existingContext, "booking") || contextLink(existingContext, "contact")) : "";
+  const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQueryFor(businessName, localArea, existingContext || {})}`;
+  const heroImage = existingContext && existingContext.imageCandidates && existingContext.imageCandidates[0] ? existingContext.imageCandidates[0] : theme.image;
+  const imageSourceLabel = existingContext && existingContext.imageCandidates && existingContext.imageCandidates.length ? "same-domain business imagery, with CSS fallback panels" : "category-relevant stock-style imagery and CSS visual panels";
+  const contextNote = existingContext && existingContext.fetched ? `Redesign context safely read from ${existingContext.domain}.` : (existingContext && existingContext.reason ? existingContext.reason : "No existing website was supplied, so this concept uses the submitted brief.");
+  const contextItems = [existingContext && existingContext.title ? `Existing site title: ${existingContext.title}` : "", existingContext && existingContext.metaDescription ? `Existing meta direction: ${existingContext.metaDescription}` : "", ...buildResearchFacts(existingContext || {}, description)].filter(Boolean);
+
   const safeName = escapeHtml(businessName);
-  const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
   const safeNotes = escapeHtml(publicNotes(notes));
-  const safeCategory = escapeHtml(category);
   const safeBadge = escapeHtml(copy.badge);
   const safeHeadline = escapeHtml(copy.headline);
   const safeSubhead = escapeHtml(copy.subhead);
-  const safeVisual = escapeHtml(theme.visual);
-  const safeIcon = escapeHtml(theme.icon);
-  const heroImage = existingContext && existingContext.imageCandidates && existingContext.imageCandidates[0] ? existingContext.imageCandidates[0] : theme.image;
-  const contextTitle = existingContext && existingContext.title ? existingContext.title : "";
-  const contextDescription = existingContext && existingContext.metaDescription ? existingContext.metaDescription : "";
-  const contextHeadings = existingContext && existingContext.headings && existingContext.headings.length ? existingContext.headings : [];
-  const localArea = inferLocalArea(businessName, description, existingContext || {});
   const safeLocalArea = escapeHtml(localArea);
-  const extractedServices = existingContext && existingContext.fetched
-    ? inferServicesFromContext(description, existingContext.headings || [], existingContext.services || [])
-    : [];
-  let finalServices = extractedServices.length >= 3
-    ? extractedServices.slice(0, 6).map(item => [item, `A clearer website section can explain ${item.toLowerCase()} in plain language, then guide visitors toward the right enquiry step.`])
-    : copy.services;
-  if (category === "Fitness" && finalServices.length < 6) {
-    finalServices = uniqueRawList([
-      ...finalServices.map(([title]) => title),
-      "Sports recovery",
-      "Mobility support",
-      "Soft tissue therapy",
-      "Movement assessment",
-      "Recovery planning",
-      "Active lifestyle support"
-    ], 6).map(title => {
-      const copyByTitle = {
-        "Sports recovery": "Support training-heavy bodies with recovery-led sessions that help reduce stiffness and keep movement feeling confident.",
-        "Mobility support": "Explain stretching, range-of-motion and movement support clearly for gym-goers, runners and active adults.",
-        "Soft tissue therapy": "Present hands-on recovery work in a calm, clinical way without overpromising results.",
-        "Movement assessment": "Give new visitors a clear first step for discussing tightness, discomfort or performance limitations.",
-        "Recovery planning": "Show how the clinic can help people build a practical plan around training, work and everyday movement.",
-        "Active lifestyle support": "Position the business for people who want to stay active, recover smarter and move with more confidence."
-      };
-      return [title, copyByTitle[title] || `A clearer website section can explain ${title.toLowerCase()} in plain language, then guide visitors toward the right enquiry step.`];
-    });
-  }
-  const publicPrices = existingContext && existingContext.prices ? existingContext.prices : [];
-  const contactDetails = existingContext && existingContext.contactDetails ? existingContext.contactDetails : {};
-  const phoneText = contactDetails.phone || "Contact details can be added here once confirmed.";
-  const emailText = contactDetails.email || "Email can be added once confirmed.";
-  const addressText = contactDetails.address || (localArea !== "Local area" ? `Serving ${localArea} and the surrounding area.` : "Local service area to be confirmed.");
-  const hoursText = contactDetails.hours && contactDetails.hours.length ? contactDetails.hours.join(" / ") : "Opening hours can be added once confirmed.";
-  const bookingUrl = existingContext && existingContext.fetched ? (contextLink(existingContext, "booking") || contextLink(existingContext, "contact")) : "";
-  const mapQuery = mapsQueryFor(businessName, localArea, existingContext || {});
-  const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
-  const imageSourceLabel = existingContext && existingContext.imageCandidates && existingContext.imageCandidates.length
-    ? "Same-domain business images with CSS fallbacks"
-    : "Safe stock-style imagery and CSS visual panels";
-  const contextNote = existingContext && existingContext.fetched
-    ? `Redesign context safely read from ${existingContext.domain}.`
-    : (existingContext && existingContext.reason ? existingContext.reason : "No existing website context was available, so the concept uses the submitted brief.");
-  const contextItems = [
-    contextTitle ? `Existing site title: ${contextTitle}` : "",
-    contextDescription ? `Meta description direction: ${contextDescription}` : "",
-    ...buildResearchFacts(existingContext || {}, description),
-    ...contextHeadings.slice(0, 4).map(item => `Observed heading: ${item}`)
-  ].filter(Boolean);
-  const contextList = contextItems.length
-    ? contextItems.map(item => `<li>${escapeHtml(item)}</li>`).join("")
-    : `<li>${escapeHtml(contextNote)}</li>`;
-  const serviceCards = finalServices.map(([title, body], index) => `
+  const safeWebsite = escapeHtml(websiteUrl || "No website");
+  const safeHeroImage = escapeHtml(heroImage);
+  const primaryCtaHref = bookingUrl ? escapeHtml(bookingUrl) : "#contact";
+  const primaryCtaAttrs = bookingUrl ? ' target="_blank" rel="noopener"' : "";
+
+  const serviceCards = finalServices.slice(0, 6).map(([title, body], index) => `
           <article class="service-card">
-            <div class="mini-visual tone-${(index % 3) + 1}" role="img" aria-label="${escapeHtml(title)} visual panel"><span>${escapeHtml(title)}</span></div>
+            <div class="service-visual service-visual-${(index % 3) + 1}" aria-hidden="true"><span>${String(index + 1).padStart(2, "0")}</span></div>
             <h3>${escapeHtml(title)}</h3>
             <p>${escapeHtml(body)}</p>
           </article>`).join("");
-  const reasonItems = copy.reasons.map(item => `<li>${escapeHtml(item)}</li>`).join("");
-  const galleryItems = uniqueRawList([
-    ...copy.gallery,
-    category === "Fitness" ? "Therapy room" : "",
-    category === "Fitness" ? "Performance recovery" : "",
-    category === "Fitness" ? "Movement plan" : ""
-  ].filter(Boolean), 6);
-  const galleryCards = galleryItems.map((label, index) => `
-          <article class="gallery-card gallery-${index + 1}" role="img" aria-label="${escapeHtml(label)} concept visual">
-            <span>${escapeHtml(label)}</span>
-          </article>`).join("");
-  const processSteps = [
-    ["Enquire or book", `Make it obvious how ${businessName} wants people to start, whether that is a call, booking link or short enquiry.`],
-    ["Discuss the need", "Help visitors understand that the first conversation is about their training, stiffness, recovery or service goal."],
-    ["Build the plan", "Frame the service around a practical route forward rather than a generic list of options."],
-    ["Move with confidence", "Use the website to reinforce the outcome visitors care about: clearer next steps and more confidence before they enquire."]
-  ];
-  const processCards = processSteps.map(([title, body], index) => `
-          <article class="process-step">
-            <span>${String(index + 1).padStart(2, "0")}</span>
-            <h3>${escapeHtml(title)}</h3>
-            <p>${escapeHtml(body)}</p>
-          </article>`).join("");
-  const pricingCards = buildPublicPricingHtml(publicPrices);
-  const faqItems = [
-    `What should a visitor understand first? ${businessName} should quickly explain who it helps, the core services available, and the simplest next step.`,
-    `What can be confirmed before launch? Services, contact details, opening hours, proof points and any public service prices should be checked with the business.`,
-    `What if imagery is limited? The page uses safe category visuals and CSS panels so the layout still looks complete without relying on scraped images.`
-  ];
-  const faqCards = faqItems.map(item => {
-    const [question, answer] = item.split("? ");
-    return `<article class="reason-card"><h3>${escapeHtml(question)}?</h3><p class="muted">${escapeHtml(answer || "")}</p></article>`;
-  }).join("");
+  const priceCards = publicPrices && publicPrices.length ? publicPrices.slice(0, 4).map(item => `<article class="info-card strong"><span>Public price</span><p>${escapeHtml(item)}</p></article>`).join("") : `<article class="info-card strong"><span>Service pricing</span><p>Pricing available on request. The live site can add confirmed service prices once the business approves them.</p></article><article class="info-card"><span>Availability</span><p>Ask about current appointments, suitability and service options before booking.</p></article>`;
+  const galleryItems = uniqueRawList([...(copy.gallery || []), category === "Fitness" ? "Recovery suite" : "Signature service", category === "Fitness" ? "Mobility and movement" : "Customer journey", category === "Fitness" ? "Performance-focused plan" : "Local brand presence"].filter(Boolean), 6);
+  const galleryCards = galleryItems.map((label, index) => `<article class="gallery-card gallery-card-${index + 1}" aria-label="${escapeHtml(label)} visual concept"><div><span>0${index + 1}</span><h3>${escapeHtml(label)}</h3></div></article>`).join("");
+  const processCards = [["Book or enquire", `Make the first step obvious for ${businessName}: call, book, or send a short enquiry.`], ["Discuss your needs", "Frame the first conversation around goals, stiffness, recovery, suitability and the right next step."], ["Build the plan", "Show how a practical plan can connect the right service, frequency and expectations without overpromising."], ["Recover and move better", "Keep the page focused on confidence, clearer movement and a better route back to an active routine."]].map(([title, body], index) => `<article class="step-card"><span>${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(title)}</h3><p>${escapeHtml(body)}</p></article>`).join("");
+  const faqCards = [["What can I ask about first?", "Services, suitability, current availability and the best starting point can all be handled through a low-pressure enquiry."], ["Is this an exact live website?", "This is a proposal-ready concept. Final contact details, proof points, imagery and service wording should be confirmed with the business."], ["Are prices shown?", publicPrices && publicPrices.length ? "Only public business service prices found on the supplied site are included." : "No prices are invented. The page asks visitors to enquire for current service options."], ["What makes the redesign useful?", "It gives visitors a stronger first impression, clearer service routes, better local context and a cleaner path to contact."]].map(([question, answer]) => `<article class="faq-card"><h3>${escapeHtml(question)}</h3><p>${escapeHtml(answer)}</p></article>`).join("");
+  const contextList = contextItems.length ? contextItems.map(item => `<li>${escapeHtml(item)}</li>`).join("") : `<li>${escapeHtml(contextNote)}</li>`;
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>${safeName} | Local Business Website Concept</title>
+  <title>${safeName} | Premium Local Website Concept</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Website concept for ${safeName}.">
+  <meta name="description" content="Premium website concept for ${safeName}.">
   <style>
-    :root {
-      color-scheme: light;
-      --bg: ${theme.bg};
-      --panel: ${theme.panel};
-      --ink: ${theme.ink};
-      --muted: ${theme.muted};
-      --line: color-mix(in srgb, ${theme.brand} 18%, #ffffff);
-      --brand: ${theme.brand};
-      --brand-dark: ${theme.brandDark};
-      --accent: ${theme.accent};
-      --soft: ${theme.soft};
-      --hero-image: url("${heroImage}");
-      --shadow: 0 24px 80px rgba(20, 30, 45, .14);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 12% 4%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 30%),
-        linear-gradient(180deg, var(--bg), #fff);
-      line-height: 1.6;
-    }
-    a { color: inherit; }
-    .shell {
-      width: min(1280px, calc(100% - 48px));
-      margin: 0 auto;
-    }
-    header {
-      position: relative;
-      overflow: hidden;
-      background:
-        linear-gradient(90deg, rgba(6,21,37,.96), rgba(6,21,37,.82) 42%, rgba(6,21,37,.28)),
-        radial-gradient(circle at 76% 18%, color-mix(in srgb, var(--accent) 54%, transparent), transparent 30%),
-        linear-gradient(135deg, var(--brand-dark), color-mix(in srgb, var(--brand) 72%, #0f172a));
-      color: #fff;
-      min-height: 92vh;
-      padding: 32px 0 128px;
-    }
-    header:after {
-      content: "";
-      position: absolute;
-      inset: auto -10% -80px -10%;
-      height: 150px;
-      background: var(--bg);
-      transform: skewY(-3deg);
-      transform-origin: left top;
-    }
-    nav {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 92px;
-    }
-    .brand {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: .02em;
-    }
-    .nav-note {
-      color: rgba(255,255,255,.78);
-      font-size: 14px;
-    }
-    .hero {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: minmax(0, .95fr) minmax(430px, 1.05fr);
-      gap: 72px;
-      align-items: center;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 22px;
-      border: 1px solid rgba(255,255,255,.22);
-      border-radius: 999px;
-      padding: 8px 12px;
-      background: rgba(255,255,255,.1);
-      color: rgba(255,255,255,.88);
-      font-size: 14px;
-      font-weight: 850;
-    }
-    h1 {
-      margin: 0 0 24px;
-      font-size: clamp(58px, 7.8vw, 108px);
-      line-height: .9;
-      letter-spacing: 0;
-    }
-    .lead {
-      max-width: 760px;
-      margin: 0 0 34px;
-      color: rgba(255,255,255,.88);
-      font-size: clamp(20px, 2vw, 27px);
-      line-height: 1.45;
-    }
-    .hero-proof {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin: 0 0 32px;
-    }
-    .hero-proof span {
-      display: inline-flex;
-      align-items: center;
-      min-height: 40px;
-      border-radius: 999px;
-      padding: 8px 13px;
-      color: rgba(255,255,255,.9);
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.16);
-      font-size: 13px;
-      font-weight: 850;
-    }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .button {
-      display: inline-flex;
-      min-height: 56px;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      padding: 14px 24px;
-      text-decoration: none;
-      font-weight: 900;
-    }
-    .primary { background: #fff; color: var(--brand-dark); box-shadow: 0 18px 50px rgba(0,0,0,.22); }
-    .secondary { border: 1px solid rgba(255,255,255,.35); color: #fff; }
-    .visual {
-      min-height: 620px;
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 44px;
-      background:
-        linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.5)),
-        var(--hero-image),
-        linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.03)),
-        radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 60%, transparent), transparent 30%),
-        linear-gradient(135deg, color-mix(in srgb, var(--brand) 70%, #fff), var(--brand-dark));
-      background-size: cover;
-      background-position: center;
-      padding: 30px;
-      box-shadow: 0 42px 120px rgba(0,0,0,.38);
-    }
-    .mock-browser {
-      height: 100%;
-      min-height: 560px;
-      border-radius: 34px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(240,253,255,.9));
-      color: var(--ink);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7), 0 30px 80px rgba(0,0,0,.22);
-    }
-    .mock-top {
-      display: flex;
-      gap: 7px;
-      align-items: center;
-      height: 42px;
-      padding: 0 16px;
-      background: rgba(15,23,42,.08);
-    }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); opacity: .75; }
-    .mock-body {
-      padding: 28px;
-      display: grid;
-      gap: 22px;
-    }
-    .mock-photo {
-      min-height: 310px;
-      border-radius: 30px;
-      background:
-        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.64)),
-        var(--hero-image),
-        linear-gradient(135deg, color-mix(in srgb, var(--brand) 62%, transparent), transparent),
-        repeating-linear-gradient(135deg, rgba(255,255,255,.22) 0 18px, rgba(255,255,255,.06) 18px 36px),
-        linear-gradient(135deg, var(--soft), var(--accent));
-      background-size: cover;
-      background-position: center;
-      display: flex;
-      align-items: flex-end;
-      padding: 28px;
-      color: #fff;
-      font-size: 24px;
-      font-weight: 950;
-      box-shadow: inset 0 -80px 90px rgba(0,0,0,.22);
-    }
-    .mock-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .mock-tile {
-      min-height: 138px;
-      border-radius: 24px;
-      background: var(--soft);
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      color: var(--brand-dark);
-      font-weight: 850;
-    }
-    .mock-pill {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      background: var(--brand-dark);
-      color: #fff;
-      font-weight: 950;
-    }
-    main { margin-top: -68px; }
-    section {
-      padding: 104px 0;
-    }
-    main > section:nth-of-type(even) { background: #fff; }
-    main > section:nth-of-type(odd) { background: linear-gradient(180deg, var(--bg), #fff); }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 34px;
-      padding: 48px;
-      box-shadow: var(--shadow);
-    }
-    .trust-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 20px;
-      position: relative;
-      z-index: 2;
-    }
-    .trust-item {
-      padding: 28px;
-      border-radius: 26px;
-      background: linear-gradient(180deg, color-mix(in srgb, var(--soft) 72%, #fff), #fff);
-      border: 1px solid var(--line);
-    }
-    .trust-item strong { display: block; font-size: 22px; margin-bottom: 8px; color: var(--brand-dark); }
-    .section-head {
-      max-width: 880px;
-      margin-bottom: 44px;
-    }
-    .section-head p {
-      color: var(--muted);
-      font-size: 21px;
-      line-height: 1.55;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 28px;
-    }
-    .service-card, .reason-card {
-      background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--soft) 32%, #fff));
-      border: 1px solid var(--line);
-      border-radius: 30px;
-      padding: 30px;
-      box-shadow: 0 24px 70px rgba(17,24,39,.1);
-    }
-    .mini-visual {
-      min-height: 245px;
-      border-radius: 28px;
-      margin: -8px -8px 26px;
-      padding: 24px;
-      display: flex;
-      align-items: flex-end;
-      color: #fff;
-      font-size: 22px;
-      font-weight: 950;
-      background:
-        linear-gradient(180deg, transparent 22%, rgba(0,0,0,.62)),
-        var(--hero-image),
-        linear-gradient(145deg, color-mix(in srgb, var(--brand) 74%, transparent), transparent),
-        radial-gradient(circle at 74% 18%, rgba(255,255,255,.46), transparent 26%),
-        linear-gradient(135deg, var(--brand-dark), var(--brand));
-      background-size: cover;
-      background-position: center;
-      box-shadow: inset 0 -70px 90px rgba(0,0,0,.2);
-    }
-    .tone-2 { background:
-      linear-gradient(145deg, color-mix(in srgb, var(--accent) 68%, transparent), transparent),
-      repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 12px, transparent 12px 24px),
-      linear-gradient(135deg, var(--brand), var(--brand-dark)); }
-    .tone-3 { background:
-      radial-gradient(circle at 24% 20%, rgba(255,255,255,.46), transparent 28%),
-      linear-gradient(135deg, var(--accent), var(--brand)); }
-    .gallery {
-      background:
-        radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 34%),
-        linear-gradient(135deg, var(--brand-dark), #07111f);
-      color: #fff;
-      padding: 118px 0;
-    }
-    .gallery .section-head p { color: rgba(255,255,255,.76); }
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: 1.25fr .9fr .9fr;
-      gap: 24px;
-    }
-    .gallery-card {
-      min-height: 360px;
-      border-radius: 34px;
-      padding: 30px;
-      display: flex;
-      align-items: flex-end;
-      background:
-        linear-gradient(180deg, transparent 30%, rgba(0,0,0,.68)),
-        var(--hero-image),
-        linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
-        radial-gradient(circle at 30% 24%, color-mix(in srgb, var(--accent) 70%, transparent), transparent 32%),
-        linear-gradient(135deg, color-mix(in srgb, var(--brand) 80%, #fff), var(--brand-dark));
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 24px 70px rgba(0,0,0,.24);
-      font-size: 28px;
-      font-weight: 950;
-    }
-    .gallery-1 { min-height: 520px; grid-row: span 2; }
-    .gallery-2 {
-      background:
-        linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
-        repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 14px, transparent 14px 28px),
-        linear-gradient(135deg, var(--accent), var(--brand));
-    }
-    .gallery-3 {
-      background:
-        linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
-        radial-gradient(circle at 76% 20%, rgba(255,255,255,.42), transparent 30%),
-        linear-gradient(135deg, var(--brand-dark), var(--brand));
-    }
-    h2 {
-      margin: 0 0 18px;
-      font-size: clamp(42px, 5.2vw, 72px);
-      line-height: 1.1;
-    }
-    h3 {
-      margin: 0 0 12px;
-      font-size: 25px;
-      line-height: 1.18;
-    }
-    p { margin: 0 0 16px; font-size: 17px; }
-    ul { margin: 0; padding-left: 22px; }
-    li { margin: 9px 0; }
-    .muted { color: var(--muted); }
-    .seo {
-      background: var(--soft);
-      border-block: 1px solid #d7e8ff;
-    }
-    .seo-layout {
-      display: grid;
-      grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
-      gap: 24px;
-      align-items: center;
-    }
-    .seo-card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      padding: 28px;
-      box-shadow: var(--shadow);
-    }
-    .price-grid, .contact-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 24px;
-    }
-    .price-card, .contact-card, .map-card {
-      background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--soft) 28%, #fff));
-      border: 1px solid var(--line);
-      border-radius: 32px;
-      padding: 34px;
-      box-shadow: 0 24px 70px rgba(17,24,39,.1);
-    }
-    .price-card strong, .contact-card strong {
-      display: block;
-      color: var(--brand-dark);
-      font-size: 22px;
-      margin-bottom: 8px;
-    }
-    .location-layout {
-      display: grid;
-      grid-template-columns: minmax(0, .82fr) minmax(420px, 1.18fr);
-      gap: 34px;
-      align-items: stretch;
-    }
-    .map-panel {
-      min-height: 520px;
-      border: 0;
-      border-radius: 34px;
-      width: 100%;
-      background:
-        radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--accent) 72%, transparent), transparent 28%),
-        linear-gradient(135deg, var(--soft), #fff);
-      box-shadow: inset 0 0 0 1px var(--line);
-    }
-    .visual-note {
-      display: inline-flex;
-      margin-top: 14px;
-      border-radius: 999px;
-      padding: 8px 12px;
-      background: color-mix(in srgb, var(--soft) 70%, #fff);
-      color: var(--brand-dark);
-      font-weight: 850;
-      font-size: 13px;
-    }
-    .cta {
-      text-align: center;
-      padding: 122px 0;
-    }
-    .cta .panel {
-      background:
-        radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--accent) 50%, transparent), transparent 30%),
-        linear-gradient(135deg, var(--brand-dark), color-mix(in srgb, var(--brand) 78%, #0f172a));
-      color: #fff;
-      padding: 72px;
-    }
-    .cta p {
-      max-width: 820px;
-      margin-inline: auto;
-      color: rgba(255,255,255,.82);
-      font-size: 22px;
-    }
-    .process-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 18px;
-    }
-    .process-step {
-      min-height: 280px;
-      border-radius: 30px;
-      padding: 30px;
-      background: linear-gradient(180deg, var(--brand-dark), color-mix(in srgb, var(--brand) 68%, #0f172a));
-      color: #fff;
-      box-shadow: 0 24px 70px rgba(17,24,39,.16);
-    }
-    .process-step span {
-      display: inline-grid;
-      place-items: center;
-      width: 54px;
-      height: 54px;
-      border-radius: 18px;
-      background: color-mix(in srgb, var(--accent) 74%, #fff);
-      color: var(--brand-dark);
-      font-weight: 950;
-      margin-bottom: 28px;
-    }
-    .process-step p { color: rgba(255,255,255,.78); }
-    .meta {
-      margin-top: 20px;
-      color: rgba(255,255,255,.74);
-      font-size: 14px;
-    }
-    footer {
-      padding: 28px 0;
-      color: var(--muted);
-      border-top: 1px solid var(--line);
-      background: #fff;
-      font-size: 14px;
-    }
-    @media (max-width: 820px) {
-      body { background: #fff; }
-      .hero, .grid, .trust-strip, .gallery-grid, .seo-layout, .price-grid, .contact-grid, .location-layout, .process-grid { grid-template-columns: 1fr; }
-      header { min-height: auto; padding-bottom: 70px; }
-      nav { margin-bottom: 44px; align-items: flex-start; flex-direction: column; }
-      main { margin-top: 0; }
-      .shell { width: min(100% - 28px, 1280px); }
-      .panel { padding: 24px; border-radius: 18px; }
-      h1 { font-size: 46px; }
-      h2 { font-size: 36px; }
-      .visual, .mock-browser { min-height: 430px; }
-      .mock-photo, .mini-visual { min-height: 220px; }
-      .gallery-1, .gallery-card, .map-panel { min-height: 320px; }
-      section { padding: 72px 0; }
-    }
+    :root { color-scheme: light; --ink:${theme.ink}; --muted:${theme.muted}; --brand:${theme.brand}; --brand-dark:${theme.brandDark}; --accent:${theme.accent}; --soft:${theme.soft}; --bg:${theme.bg}; --panel:${theme.panel}; --line:color-mix(in srgb,var(--brand) 16%,#e5e7eb); --hero-image:url("${safeHeroImage}"); --shadow:0 30px 90px rgba(8,24,39,.14); --heavy-shadow:0 50px 140px rgba(2,8,23,.34); }
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.6} a{color:inherit}.nav-inner,.section-inner{width:min(1280px,calc(100% - 48px));margin:0 auto}.site-nav{position:sticky;top:0;z-index:20;background:rgba(6,21,37,.9);color:#fff;backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.1)}.nav-inner{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}.logo{font-size:20px;font-weight:950}.nav-links{display:flex;gap:24px;color:rgba(255,255,255,.78);font-size:14px;font-weight:800}.nav-links a{text-decoration:none}.nav-cta,.btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;border-radius:999px;padding:0 22px;text-decoration:none;font-weight:950;border:1px solid transparent;white-space:nowrap}.nav-cta{min-height:44px;background:var(--accent);color:var(--brand-dark)}.btn.primary{background:#fff;color:var(--brand-dark);box-shadow:0 18px 60px rgba(255,255,255,.22)}.btn.dark{background:var(--brand-dark);color:#fff}.btn.ghost{color:#fff;border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08)}.btn.light{color:var(--brand-dark);background:color-mix(in srgb,var(--soft) 74%,#fff);border-color:var(--line)}
+    .hero{min-height:85vh;display:grid;align-items:center;color:#fff;background:linear-gradient(90deg,rgba(6,21,37,.98),rgba(6,21,37,.84) 45%,rgba(6,21,37,.24)),radial-gradient(circle at 72% 18%,color-mix(in srgb,var(--accent) 42%,transparent),transparent 32%),linear-gradient(135deg,var(--brand-dark),#07111f 62%,color-mix(in srgb,var(--brand) 48%,#07111f));overflow:hidden;position:relative;padding:76px 0 98px}.hero-layout{position:relative;display:grid;grid-template-columns:minmax(0,.9fr) minmax(440px,1.1fr);gap:72px;align-items:center}.eyebrow{display:inline-flex;align-items:center;gap:10px;min-height:42px;border-radius:999px;padding:8px 14px;margin-bottom:28px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.9);font-weight:900;font-size:14px}h1{margin:0 0 26px;font-size:clamp(3rem,6vw,5.8rem);line-height:.9;letter-spacing:0;max-width:840px}.hero-copy{max-width:760px;margin:0 0 34px;color:rgba(255,255,255,.84);font-size:clamp(1.12rem,1.7vw,1.55rem);line-height:1.45}.hero-actions,.section-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.proof-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:38px}.proof-card{min-height:118px;padding:20px;border-radius:24px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13)}.proof-card strong{display:block;font-size:22px;margin-bottom:6px}.proof-card span{color:rgba(255,255,255,.72);font-size:13px;font-weight:750}
+    .hero-visual{position:relative;min-height:680px;border-radius:44px;overflow:hidden;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.58)),var(--hero-image),radial-gradient(circle at 20% 12%,color-mix(in srgb,var(--accent) 70%,transparent),transparent 28%),linear-gradient(135deg,color-mix(in srgb,var(--brand) 72%,#fff),var(--brand-dark));background-size:cover;background-position:center;box-shadow:var(--heavy-shadow);border:1px solid rgba(255,255,255,.2)}.floating-card{position:absolute;z-index:2;width:min(310px,46%);padding:22px;border-radius:26px;background:rgba(255,255,255,.92);color:var(--brand-dark);box-shadow:0 28px 80px rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.7)}.floating-card strong{display:block;font-size:20px;margin-bottom:6px}.floating-card p{margin:0;color:var(--muted);font-size:14px}.float-one{left:30px;bottom:34px}.float-two{right:30px;top:34px}.float-three{right:54px;bottom:120px;width:min(250px,42%);background:var(--accent)}
+    section{padding:104px 0}.section-soft{background:linear-gradient(180deg,var(--bg),#fff)}.section-white{background:#fff}.section-dark{color:#fff;background:radial-gradient(circle at 12% 8%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 34%),linear-gradient(135deg,var(--brand-dark),#07111f)}.section-head{max-width:880px;margin-bottom:48px}.section-head.center{margin-inline:auto;text-align:center}h2{margin:0 0 18px;font-size:clamp(2.2rem,4vw,4rem);line-height:1.05;letter-spacing:0}.section-head p,.wide-copy{margin:0;color:var(--muted);font-size:19px;line-height:1.65}.section-dark .section-head p,.section-dark .wide-copy{color:rgba(255,255,255,.74)}.services-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}.service-card{min-height:360px;display:flex;flex-direction:column;padding:30px;border-radius:32px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}.service-visual{min-height:150px;border-radius:26px;margin-bottom:28px;display:flex;align-items:flex-end;padding:22px;color:#fff;background:linear-gradient(180deg,transparent,rgba(0,0,0,.58)),var(--hero-image),linear-gradient(135deg,var(--brand),var(--brand-dark));background-size:cover;background-position:center}.service-visual span{font-weight:950;font-size:28px}.service-card h3,.step-card h3,.faq-card h3{margin:0 0 12px;font-size:26px;line-height:1.15}.service-card p,.step-card p,.faq-card p,.info-card p,.contact-card p{margin:0;color:var(--muted);font-size:17px;line-height:1.6}
+    .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.info-card,.contact-card{padding:30px;border-radius:30px;background:linear-gradient(180deg,#fff,color-mix(in srgb,var(--soft) 30%,#fff));border:1px solid var(--line);box-shadow:var(--shadow)}.info-card span,.contact-card span{display:block;color:var(--brand);font-weight:950;margin-bottom:10px}.gallery-grid{display:grid;grid-template-columns:1.25fr .9fr .9fr;gap:24px}.gallery-card{min-height:360px;border-radius:36px;padding:30px;display:flex;align-items:flex-end;overflow:hidden;background:linear-gradient(180deg,transparent 35%,rgba(0,0,0,.78)),var(--hero-image),radial-gradient(circle at 24% 20%,color-mix(in srgb,var(--accent) 64%,transparent),transparent 28%),linear-gradient(135deg,var(--brand),var(--brand-dark));background-size:cover;background-position:center;box-shadow:0 32px 90px rgba(0,0,0,.22)}.gallery-card-1{min-height:560px;grid-row:span 2}.gallery-card-2,.gallery-card-5{background:linear-gradient(180deg,transparent,rgba(0,0,0,.62)),repeating-linear-gradient(135deg,rgba(255,255,255,.14) 0 16px,transparent 16px 32px),linear-gradient(135deg,var(--brand),var(--brand-dark))}.gallery-card-3,.gallery-card-6{background:linear-gradient(180deg,transparent,rgba(0,0,0,.62)),radial-gradient(circle at 74% 18%,rgba(255,255,255,.34),transparent 30%),linear-gradient(135deg,var(--brand-dark),color-mix(in srgb,var(--brand) 72%,#fff))}.gallery-card span{color:var(--accent);font-weight:950;font-size:14px}.gallery-card h3{margin:8px 0 0;font-size:clamp(1.6rem,2.6vw,2.6rem);line-height:1.05}
+    .process-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}.step-card{min-height:310px;padding:30px;border-radius:32px;background:linear-gradient(180deg,var(--brand-dark),color-mix(in srgb,var(--brand) 70%,#0f172a));color:#fff;box-shadow:var(--shadow)}.step-card span{display:inline-grid;place-items:center;width:60px;height:60px;border-radius:20px;margin-bottom:34px;background:var(--accent);color:var(--brand-dark);font-weight:950}.step-card p{color:rgba(255,255,255,.74)}.location-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(430px,1.1fr);gap:42px;align-items:stretch}.map-card{min-height:520px;border-radius:38px;padding:42px;display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(circle at 76% 16%,color-mix(in srgb,var(--accent) 46%,transparent),transparent 28%),linear-gradient(135deg,#fff,color-mix(in srgb,var(--soft) 70%,#fff));border:1px solid var(--line);box-shadow:var(--shadow)}.map-visual{min-height:520px;border-radius:38px;padding:34px;display:flex;align-items:flex-end;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(6,21,37,.72)),repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 2px,transparent 2px 80px),repeating-linear-gradient(0deg,rgba(255,255,255,.14) 0 2px,transparent 2px 80px),radial-gradient(circle at 52% 44%,var(--accent),transparent 10%),linear-gradient(135deg,var(--brand-dark),color-mix(in srgb,var(--brand) 66%,#0f172a));color:#fff;box-shadow:var(--heavy-shadow)}.map-visual strong{display:block;font-size:34px;line-height:1;margin-bottom:8px}
+    .contact-wrap{display:grid;grid-template-columns:.85fr 1.15fr;gap:32px;align-items:stretch}.contact-panel{padding:48px;border-radius:38px;background:linear-gradient(135deg,var(--brand-dark),color-mix(in srgb,var(--brand) 62%,#0f172a));color:#fff;box-shadow:var(--heavy-shadow)}.contact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.faq-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.faq-card{padding:32px;border-radius:30px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}.final-cta{padding:120px 0;text-align:center;color:#fff;background:radial-gradient(circle at 18% 0%,color-mix(in srgb,var(--accent) 42%,transparent),transparent 34%),linear-gradient(135deg,var(--brand-dark),color-mix(in srgb,var(--brand) 75%,#0f172a))}.final-cta p{max-width:760px;margin:0 auto 32px;color:rgba(255,255,255,.78);font-size:21px}footer{padding:34px 0;color:var(--muted);background:#fff;border-top:1px solid var(--line)}
+    @media(max-width:980px){.nav-links{display:none}.hero-layout,.services-grid,.gallery-grid,.process-grid,.location-layout,.contact-wrap,.contact-grid,.faq-grid,.info-grid{grid-template-columns:1fr}.hero{min-height:auto;padding:58px 0 78px}.hero-visual,.map-card,.map-visual{min-height:430px}.proof-grid{grid-template-columns:1fr}.gallery-card-1{min-height:420px;grid-row:auto}section,.final-cta{padding:64px 0}.nav-inner,.section-inner{width:min(100% - 28px,1280px)}h1{font-size:clamp(2.8rem,12vw,4.4rem)}h2{font-size:clamp(2.15rem,8vw,3.4rem)}.floating-card{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:auto;margin:18px}.float-three{display:none}.hero-visual{display:flex;flex-direction:column;justify-content:flex-end;gap:0}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="shell">
-      <nav>
-        <div class="brand">${safeName}</div>
-        <div class="nav-note">Local business website concept</div>
-      </nav>
-      <div class="hero">
-        <div>
-          <div class="badge">${safeBadge} / ${safeCategory}</div>
-          <h1>${safeHeadline}</h1>
-          <p class="lead">${safeSubhead}</p>
-          <div class="hero-proof"><span>${safeLocalArea}</span><span>Mobile-first enquiry flow</span><span>Proposal-ready concept</span></div>
-          <div class="actions">
-            <a class="button primary" href="#contact">Request a review</a>
-            <a class="button secondary" href="#services">View services</a>
-          </div>
-        </div>
-        <div class="visual" aria-label="Premium website preview mockup">
-          <div class="mock-browser">
-            <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-            <div class="mock-body">
-              <div class="mock-photo">${safeVisual}</div>
-              <div class="mock-grid">
-                <div class="mock-tile"><span>Premium first impression</span><div class="mock-pill">${safeIcon}</div></div>
-                <div class="mock-tile"><span>Simple enquiry path</span><div class="mock-pill">GO</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
+  <nav class="site-nav"><div class="nav-inner"><div class="logo">${safeName}</div><div class="nav-links"><a href="#services">Services</a><a href="#process">How it works</a><a href="#location">Location</a><a href="#faq">FAQ</a></div><a class="nav-cta" href="#contact">Enquire now</a></div></nav>
+  <header class="hero"><div class="section-inner hero-layout"><div><div class="eyebrow">${safeBadge} / ${safeLocalArea}</div><h1>${safeHeadline}</h1><p class="hero-copy">${safeSubhead}</p><div class="hero-actions"><a class="btn primary" href="${primaryCtaHref}"${primaryCtaAttrs}>Book consultation</a><a class="btn ghost" href="#services">Explore services</a></div><div class="proof-grid"><article class="proof-card"><strong>${safeLocalArea}</strong><span>Local positioning</span></article><article class="proof-card"><strong>Clear path</strong><span>Designed around enquiry and confidence</span></article><article class="proof-card"><strong>Concept</strong><span>Ready for business detail review</span></article></div></div><div class="hero-visual" role="img" aria-label="${safeName} premium visual concept"><article class="floating-card float-one"><strong>Recovery planning</strong><p>Clear first steps for active adults who want to reduce stiffness and move better.</p></article><article class="floating-card float-two"><strong>Mobility support</strong><p>Service-led layout for gym-goers, runners and busy local customers.</p></article><article class="floating-card float-three"><strong>${safeLocalArea}</strong><p>Local clinic concept</p></article></div></div></header>
   <main>
-    <section>
-      <div class="shell panel trust-strip">
-        <div class="trust-item"><strong>Local positioning</strong><span class="muted">Built around the services and area customers search for.</span></div>
-        <div class="trust-item"><strong>Conversion focused</strong><span class="muted">Designed to move visitors from interest to enquiry.</span></div>
-        <div class="trust-item"><strong>Review ready</strong><span class="muted">Demo concept only, ready for business detail checks.</span></div>
-      </div>
-    </section>
-
-    <section id="services">
-      <div class="shell">
-        <div class="section-head">
-          <h2>${safeName} services made easier to scan</h2>
-          <p>${safeDescription}</p>
-        </div>
-        <div class="grid">
-${serviceCards}
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell">
-        <div class="section-head">
-          <h2>Service options and pricing clarity</h2>
-          <p>${publicPrices.length ? "Publicly listed prices from the current website are surfaced carefully as reference information." : "No public service prices were found, so the demo avoids inventing prices and keeps the enquiry route clear."}</p>
-        </div>
-        <div class="price-grid">
-${pricingCards}
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell">
-        <div class="section-head">
-          <h2>Why this website works</h2>
-          <p>A better demo needs more than a nice hero. It needs structure that makes the business easier to trust, understand and contact.</p>
-        </div>
-        <div class="grid">
-          <article class="reason-card"><h3>First impression</h3><p class="muted">A polished visual system helps the business feel established before the visitor reads the detail.</p></article>
-          <article class="reason-card"><h3>Decision support</h3><p class="muted">Service cards, proof points and local messaging reduce uncertainty for new customers.</p></article>
-          <article class="reason-card"><h3>Action path</h3><p class="muted">Calls to action are repeated at natural decision points without making the page feel pushy.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell">
-        <div class="section-head">
-          <h2>A clearer route from interest to enquiry</h2>
-          <p>The page is structured like a commercial website: it explains the offer, reduces uncertainty and keeps the next action visible.</p>
-        </div>
-        <div class="process-grid">
-${processCards}
-        </div>
-      </div>
-    </section>
-
-    <section class="seo">
-      <div class="shell seo-layout">
-        <div>
-          <h2>Local SEO foundation</h2>
-          <p class="muted">This structure gives ${safeName} a cleaner base for local service terms, location relevance and conversion-focused content.</p>
-        </div>
-        <div class="seo-card">
-          <ul>${reasonItems}</ul>
-          <p class="muted"><strong>Current website status:</strong> ${safeWebsite}</p>
-          <p class="muted"><strong>Build notes:</strong> ${safeNotes}</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="gallery">
-      <div class="shell">
-        <div class="section-head">
-          <h2>Visual concept direction</h2>
-          <p>${imageSourceLabel} give the demo a stronger agency-built feel without using random copyrighted logos, fake premises or unsupported claims.</p>
-        </div>
-        <div class="gallery-grid">
-${galleryCards}
-        </div>
-        <span class="visual-note">Image source: ${escapeHtml(imageSourceLabel)}</span>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell">
-        <div class="section-head">
-          <h2>Designed to make local customers more confident</h2>
-          <p>Every section is built around the questions a visitor is likely to ask before they call, enquire or compare another local option.</p>
-        </div>
-        <div class="grid">
-          <article class="reason-card"><h3>Clear service promise</h3><p class="muted">The page explains what ${safeName} helps with, who it is for, and why the offer is relevant locally.</p></article>
-          <article class="reason-card"><h3>Trust before contact</h3><p class="muted">Proof-style blocks, calm copy and simple next steps reduce uncertainty before a customer gets in touch.</p></article>
-          <article class="reason-card"><h3>Mobile-first enquiry path</h3><p class="muted">Buttons and contact prompts appear at natural decision points, so mobile visitors are not left hunting.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell panel">
-        <div class="section-head">
-          <h2>Existing website context</h2>
-          <p>${escapeHtml(contextNote)}</p>
-        </div>
-        <div class="seo-card">
-          <ul>${contextList}</ul>
-          <p class="muted">These signals are used as redesign context only. The demo avoids copying large blocks of text and uses same-domain image assets only when they are reliable; otherwise it falls back to safe stock-style imagery and CSS visual panels.</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell location-layout">
-        <div class="map-card">
-          <h2>Local area and directions</h2>
-          <p class="muted">${safeName} is positioned for ${safeLocalArea}. The live version can use confirmed address details, parking notes and local journey guidance once checked.</p>
-          <p><strong>Location signal:</strong> ${escapeHtml(addressText)}</p>
-          <div class="actions">
-            <a class="button primary" href="${directionsUrl}" target="_blank" rel="noopener">Get directions</a>
-            <a class="button secondary" href="#contact">Enquire first</a>
-          </div>
-        </div>
-        <iframe class="map-panel" title="${safeName} location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=-0.35%2C51.50%2C0.55%2C51.75&amp;layer=mapnik"></iframe>
-      </div>
-    </section>
-
-    <section id="contact">
-      <div class="shell">
-        <div class="section-head">
-          <h2>Contact and opening details</h2>
-          <p>These details are included only when found or supplied. Missing details stay clearly marked for confirmation.</p>
-        </div>
-        <div class="contact-grid">
-          <article class="contact-card"><strong>Address / area</strong><p>${escapeHtml(addressText)}</p></article>
-          <article class="contact-card"><strong>Phone</strong><p>${escapeHtml(phoneText)}</p></article>
-          <article class="contact-card"><strong>Email</strong><p>${escapeHtml(emailText)}</p></article>
-          <article class="contact-card"><strong>Opening hours</strong><p>${escapeHtml(hoursText)}</p></article>
-        </div>
-        <div class="actions" style="margin-top:22px">
-          <a class="button primary" href="${bookingUrl ? escapeHtml(bookingUrl) : "#contact"}" ${bookingUrl ? 'target="_blank" rel="noopener"' : ""}>${bookingUrl ? "Open booking/contact page" : "Add contact details once confirmed"}</a>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="shell panel">
-        <div class="section-head">
-          <h2>Questions this website answers quickly</h2>
-          <p>Short reassurance points help the page feel useful rather than just decorative.</p>
-        </div>
-        <div class="grid">
-${faqCards}
-        </div>
-      </div>
-    </section>
-
-    <section class="cta">
-      <div class="shell panel">
-        <h2>Ready to turn the demo into a real sales conversation?</h2>
-        <p>This concept shows a richer first impression, clearer services, better local visibility and a more confident enquiry path for ${safeName}.</p>
-        <div class="actions" style="justify-content:center;margin-top:26px">
-          <a class="button primary" href="#top">Review the concept</a>
-          <a class="button secondary" href="#services">Review services</a>
-        </div>
-        <div class="meta">Demo concept only - created as an example website proposal.</div>
-      </div>
-    </section>
+    <section id="services" class="section-white"><div class="section-inner"><div class="section-head"><h2>Focused services, presented like a premium local brand.</h2><p>${safeDescription}</p></div><div class="services-grid">${serviceCards}</div></div></section>
+    <section class="section-soft"><div class="section-inner info-grid">${priceCards}<article class="info-card"><span>Website context</span><p>${escapeHtml(contextNote)}</p><ul>${contextList}</ul></article></div></section>
+    <section class="section-dark"><div class="section-inner"><div class="section-head"><h2>Built to feel confident before a visitor ever enquires.</h2><p>${escapeHtml(imageSourceLabel)} support a richer visual first impression without fake logos, fake premises or unsupported claims.</p></div><div class="gallery-grid">${galleryCards}</div></div></section>
+    <section id="process" class="section-white"><div class="section-inner"><div class="section-head center"><h2>A simple route from interest to action.</h2><p>The page works like a proper commercial website: explain the value, reduce uncertainty, then make the next step obvious.</p></div><div class="process-grid">${processCards}</div></div></section>
+    <section id="location" class="section-soft"><div class="section-inner location-layout"><article class="map-card"><div><span class="eyebrow" style="background:#fff;color:var(--brand-dark);border-color:var(--line)">Location</span><h2>Local recovery support in ${safeLocalArea}.</h2><p class="wide-copy">${safeName} is positioned for people across ${safeLocalArea} and the surrounding area. The live site can add confirmed address, parking and travel details once checked.</p></div><div class="section-actions"><a class="btn dark" href="${directionsUrl}" target="_blank" rel="noopener">Get directions</a><a class="btn light" href="#contact">Enquire first</a></div></article><div class="map-visual" role="img" aria-label="${safeLocalArea} service area map concept"><div><strong>${escapeHtml(addressText)}</strong><p>Polished location panel for confirmed map/address details.</p></div></div></div></section>
+    <section id="contact" class="section-dark"><div class="section-inner contact-wrap"><article class="contact-panel"><h2>Ready for the next step?</h2><p class="wide-copy">This section is designed to convert interested visitors without pretending unconfirmed details are known.</p><div class="section-actions" style="margin-top:30px"><a class="btn primary" href="${primaryCtaHref}"${primaryCtaAttrs}>${bookingUrl ? "Open booking page" : "Enquire now"}</a><a class="btn ghost" href="#faq">Read FAQ</a></div></article><div class="contact-grid"><article class="contact-card"><span>Phone</span><p>${escapeHtml(phoneText)}</p></article><article class="contact-card"><span>Email</span><p>${escapeHtml(emailText)}</p></article><article class="contact-card"><span>Address / area</span><p>${escapeHtml(addressText)}</p></article><article class="contact-card"><span>Opening hours</span><p>${escapeHtml(hoursText)}</p></article></div></div></section>
+    <section id="faq" class="section-white"><div class="section-inner"><div class="section-head"><h2>Questions answered before people hesitate.</h2><p>These reassurance points help the page feel useful and specific without adding fake testimonials or unsupported claims.</p></div><div class="faq-grid">${faqCards}</div></div></section>
+    <section class="final-cta"><div class="section-inner"><h2>A premium first impression for ${safeName}.</h2><p>This concept turns the brief into a proper local business landing page: stronger visuals, clearer services, better location context and a more confident enquiry path.</p><div class="hero-actions" style="justify-content:center"><a class="btn primary" href="#contact">Review enquiry section</a><a class="btn ghost" href="#services">Review services</a></div></div></section>
   </main>
-
-  <footer>
-    <div class="shell">Generated prospect website for ${safeName}. Demo concept only.</div>
-  </footer>
+  <footer><div class="section-inner">${safeName} / ${safeLocalArea} website concept. Demo only; final business details should be confirmed before launch. Current website status: ${safeWebsite}. Build notes: ${safeNotes}</div></footer>
 </body>
-</html>
-`;
+</html>`;
 }
 
 function buildProposalHtml({ businessName, websiteUrl, description, notes, existingContext }) {
