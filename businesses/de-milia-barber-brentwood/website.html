@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Website Preview</title>
+  <meta name="description" content="Traditional barbering, clean fades and confident grooming from a local Brentwood barber.">
+  <style>
+    :root {
+      --dark:#101820;
+      --accent:#c89b3c;
+      --accent2:#7f8792;
+      --light:#f5efe4;
+      --paper:#ffffff;
+      --ink:#111827;
+      --muted:#5f6b7a;
+      --line:#dde5ee;
+      --shadow:0 28px 90px rgba(12,20,31,.18);
+      --soft-shadow:0 18px 50px rgba(12,20,31,.09);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:#fff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; line-height:1.5; }
+    a { color:inherit; }
+    .wrap { width:min(1280px, calc(100% - 44px)); margin:0 auto; }
+    .demo-bar { background:#080d13; color:#d7e0ea; font-size:13px; padding:9px 0; }
+    .demo-bar .wrap { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .nav { position:sticky; top:0; z-index:30; background:rgba(255,255,255,.93); border-bottom:1px solid rgba(221,229,238,.92); backdrop-filter:blur(18px); }
+    .nav-inner { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:22px; }
+    .brand { display:flex; align-items:center; gap:13px; text-decoration:none; color:var(--dark); font-weight:950; font-size:18px; letter-spacing:0; }
+    .mark { width:46px; height:46px; border-radius:8px; display:grid; place-items:center; background:linear-gradient(135deg,var(--dark),color-mix(in srgb,var(--accent) 56%,var(--dark))); color:#fff; box-shadow:0 14px 34px rgba(0,0,0,.18); }
+    .nav-links { display:flex; align-items:center; gap:20px; color:#334155; font-size:14px; font-weight:850; }
+    .nav-links a { text-decoration:none; }
+    .btn { min-height:46px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:8px; padding:0 20px; border:1px solid transparent; text-decoration:none; font-weight:950; white-space:nowrap; }
+    .btn.primary { background:var(--accent); color:var(--dark); box-shadow:0 16px 38px color-mix(in srgb,var(--accent) 34%,transparent); }
+    .btn.dark { background:var(--dark); color:#fff; }
+    .btn.light { background:#fff; color:var(--dark); border-color:rgba(255,255,255,.36); }
+    .btn.outline { background:transparent; border-color:var(--line); color:var(--dark); }
+    .hero { position:relative; overflow:hidden; color:#fff; background:linear-gradient(135deg,var(--dark) 0%, color-mix(in srgb,var(--dark) 90%,#fff) 46%, color-mix(in srgb,var(--accent) 48%,var(--dark)) 100%); }
+    .hero:before { content:""; position:absolute; inset:-20% -10% auto auto; width:72vw; height:72vw; background:radial-gradient(circle, color-mix(in srgb,var(--accent) 42%,transparent), transparent 58%); opacity:.85; }
+    .hero:after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(0,0,0,.36),rgba(0,0,0,.03) 62%), radial-gradient(circle at 18% 88%, color-mix(in srgb,var(--accent2) 28%,transparent), transparent 31%); }
+    .hero-grid { position:relative; z-index:2; min-height:calc(100vh - 116px); display:grid; grid-template-columns:minmax(0,1.03fr) minmax(420px,.9fr); gap:56px; align-items:center; padding:72px 0 86px; }
+    .kicker { display:inline-flex; padding:9px 14px; border:1px solid rgba(255,255,255,.25); border-radius:999px; color:#f0f6fb; background:rgba(255,255,255,.1); font-size:13px; font-weight:950; margin-bottom:22px; }
+    h1 { margin:0; font-size:clamp(48px,7vw,92px); line-height:.94; letter-spacing:0; max-width:900px; text-wrap:balance; }
+    .hero-copy { margin:24px 0 0; max-width:760px; color:#e2ebf3; font-size:clamp(18px,2vw,23px); }
+    .hero-actions { display:flex; gap:13px; flex-wrap:wrap; margin-top:32px; }
+    .hero-badges { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; max-width:820px; }
+    .hero-badges span { border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.1); color:#f4f8fb; border-radius:999px; padding:9px 12px; font-size:13px; font-weight:850; }
+    .hero-proof { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:34px; max-width:820px; }
+    .proof-card { border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:17px; min-height:112px; background:rgba(255,255,255,.09); box-shadow:0 16px 42px rgba(0,0,0,.12); }
+    .proof-card strong { display:block; font-size:20px; margin-bottom:5px; }
+    .proof-card span { display:block; color:#cbd8e3; font-size:13px; }
+    .hero-visual { min-height:620px; position:relative; perspective:1200px; }
+    .visual-stage { position:absolute; inset:0; border-radius:8px; border:1px solid rgba(255,255,255,.24); background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.05)); box-shadow:var(--shadow); overflow:hidden; transform:rotateY(-3deg) rotateX(1deg); }
+    .visual-stage:before { content:""; position:absolute; inset:24px; border:1px solid rgba(255,255,255,.24); border-radius:8px; }
+    .hero-photo { position:absolute; inset:42px 44px 190px 44px; border-radius:8px; overflow:hidden; background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 72%,#fff),color-mix(in srgb,var(--dark) 92%,#000)); box-shadow:0 32px 80px rgba(0,0,0,.28); }
+    .hero-photo:before { content:""; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.34),transparent 30%), repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 2px,transparent 2px 20px); }
+    .hero-photo:after { content:"polished brass, dark leather, clean mirror"; position:absolute; left:26px; right:26px; bottom:24px; color:#fff; font-size:clamp(34px,4vw,56px); font-weight:950; line-height:.96; text-transform:capitalize; text-shadow:0 12px 36px rgba(0,0,0,.32); }
+    .floating-card { position:absolute; right:22px; top:86px; width:190px; border-radius:8px; padding:16px; background:rgba(255,255,255,.94); color:var(--dark); box-shadow:0 22px 58px rgba(0,0,0,.24); z-index:4; }
+    .floating-card strong { display:block; font-size:28px; line-height:1; }
+    .floating-card span { color:var(--muted); font-size:12px; font-weight:800; }
+    .visual-badges { position:absolute; left:44px; right:44px; bottom:42px; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .visual-badges span { min-height:108px; display:flex; align-items:flex-end; padding:14px; border-radius:8px; background:rgba(255,255,255,.93); color:var(--dark); font-weight:950; box-shadow:0 18px 42px rgba(0,0,0,.18); }
+    .trust-strip { background:#fff; border-bottom:1px solid var(--line); }
+    .trust-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:20px 0; }
+    .trust-grid span { display:flex; align-items:center; gap:10px; font-weight:900; color:var(--dark); }
+    .trust-grid span:before { content:""; width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 18%,transparent); flex:0 0 auto; }
+    section { padding:88px 0; }
+    .band { background:var(--light); }
+    .section-head { display:flex; justify-content:space-between; align-items:flex-end; gap:28px; margin-bottom:36px; }
+    .section-head h2 { margin:0; color:var(--dark); font-size:clamp(34px,4.4vw,62px); line-height:1.02; letter-spacing:0; max-width:760px; text-wrap:balance; }
+    .section-head p { margin:0; color:var(--muted); max-width:570px; font-size:17px; }
+    .services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .service-card { position:relative; overflow:hidden; min-height:286px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:28px; box-shadow:var(--soft-shadow); transition:transform .2s ease, box-shadow .2s ease; }
+    .service-card:hover { transform:translateY(-3px); box-shadow:0 28px 70px rgba(12,20,31,.13); }
+    .service-card:after { content:""; position:absolute; right:-44px; top:-44px; width:150px; height:150px; border-radius:50%; background:color-mix(in srgb,var(--accent) 17%,transparent); }
+    .service-icon { width:48px; height:48px; border-radius:8px; display:grid; place-items:center; background:var(--dark); color:#fff; font-weight:950; margin-bottom:24px; }
+    .service-card h3 { margin:0 0 12px; color:var(--dark); font-size:24px; line-height:1.12; position:relative; z-index:1; }
+    .service-card p { margin:0 0 20px; color:var(--muted); position:relative; z-index:1; }
+    .service-card a { color:var(--dark); font-weight:950; text-decoration:none; border-bottom:2px solid var(--accent); position:relative; z-index:1; }
+    .signature { display:grid; grid-template-columns:1fr .86fr; gap:28px; align-items:stretch; }
+    .signature-copy { background:var(--dark); color:#fff; border-radius:8px; padding:42px; min-height:460px; position:relative; overflow:hidden; }
+    .signature-copy:after { content:""; position:absolute; right:-100px; bottom:-100px; width:330px; height:330px; border-radius:50%; background:var(--accent); opacity:.34; }
+    .signature-copy h2 { margin:0 0 16px; font-size:clamp(34px,4vw,56px); line-height:1.03; position:relative; z-index:1; }
+    .signature-copy p { color:#dce6ef; font-size:18px; max-width:670px; position:relative; z-index:1; }
+    .signature-copy ul { position:relative; z-index:1; list-style:none; padding:0; margin:30px 0 0; display:grid; gap:12px; }
+    .signature-copy li { border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); border-radius:8px; padding:14px 16px; font-weight:850; }
+    .signature-visual { border-radius:8px; overflow:hidden; min-height:460px; background:linear-gradient(135deg,color-mix(in srgb,var(--accent2) 55%,#fff),color-mix(in srgb,var(--accent) 70%,var(--dark))); box-shadow:var(--shadow); position:relative; }
+    .signature-visual:before { content:""; position:absolute; inset:24px; border:1px solid rgba(255,255,255,.34); border-radius:8px; }
+    .signature-visual:after { content:"The Sharp Finish Package"; position:absolute; left:34px; bottom:34px; right:34px; color:#fff; font-size:clamp(34px,4vw,58px); line-height:.98; font-weight:950; text-shadow:0 16px 44px rgba(0,0,0,.3); }
+    .pricing-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; align-items:stretch; }
+    .price-card { position:relative; display:flex; flex-direction:column; justify-content:space-between; gap:22px; min-height:330px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:26px; box-shadow:var(--soft-shadow); }
+    .price-card.highlight { border-color:color-mix(in srgb,var(--accent) 72%,var(--line)); box-shadow:0 24px 64px color-mix(in srgb,var(--accent) 18%,transparent); transform:translateY(-8px); }
+    .price-card em { align-self:flex-start; border-radius:999px; padding:6px 10px; background:var(--dark); color:#fff; font-size:12px; font-style:normal; font-weight:950; }
+    .price-card h3 { margin:0; color:var(--dark); font-size:22px; line-height:1.1; }
+    .price-card p { color:var(--muted); margin:0; }
+    .price-card strong { color:var(--dark); font-size:clamp(26px,2.4vw,36px); line-height:1.06; }
+    .price-card small { color:#748092; }
+    .pricing-cta { margin-top:24px; padding:24px; border-radius:8px; background:#fff; border:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:18px; box-shadow:var(--soft-shadow); }
+    .pricing-cta p { margin:0; color:var(--muted); }
+    .why-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+    .why-card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:30px; min-height:250px; box-shadow:var(--soft-shadow); }
+    .why-card span { display:inline-grid; place-items:center; width:46px; height:46px; background:color-mix(in srgb,var(--accent) 22%,#fff); color:var(--dark); border-radius:8px; font-weight:950; margin-bottom:22px; }
+    .why-card h3 { color:var(--dark); margin:0 0 10px; font-size:24px; }
+    .why-card p { margin:0; color:var(--muted); }
+    .gallery-grid { display:grid; grid-template-columns:1.2fr .8fr .8fr; grid-auto-rows:260px; gap:18px; }
+    .gallery-card { position:relative; overflow:hidden; border-radius:8px; min-height:240px; box-shadow:0 22px 60px rgba(12,20,31,.14); background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 62%,#fff),color-mix(in srgb,var(--dark) 88%,#000)); }
+    .gallery-card:first-child { grid-row:span 2; }
+    .gallery-card:nth-child(4) { grid-column:span 2; }
+    .gallery-card:before { content:""; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.3),transparent 30%), repeating-linear-gradient(135deg,rgba(255,255,255,.12) 0 2px,transparent 2px 22px); }
+    .gallery-card:after { content:""; position:absolute; inset:20px; border:1px solid rgba(255,255,255,.35); border-radius:8px; }
+    .gallery-card span { position:absolute; left:26px; bottom:24px; right:24px; color:#fff; font-size:clamp(26px,4vw,54px); line-height:.98; font-weight:950; text-shadow:0 14px 34px rgba(0,0,0,.28); }
+    .about-location { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .about-card, .location-card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:34px; box-shadow:var(--soft-shadow); }
+    .about-card h2, .location-card h2 { margin:0 0 14px; color:var(--dark); font-size:clamp(30px,3.5vw,48px); line-height:1.04; }
+    .about-card p, .location-card p { color:var(--muted); font-size:17px; margin:0 0 18px; }
+    .map-panel { min-height:250px; border-radius:8px; overflow:hidden; position:relative; background:linear-gradient(135deg,color-mix(in srgb,var(--accent2) 36%,#fff),color-mix(in srgb,var(--dark) 84%,#000)); }
+    .map-panel:before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px), linear-gradient(0deg,rgba(255,255,255,.14) 1px,transparent 1px); background-size:44px 44px; }
+    .map-panel:after { content:"Brentwood"; position:absolute; left:24px; bottom:22px; color:#fff; font-size:46px; font-weight:950; }
+    .reviews-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    figure { margin:0; background:#fff; border:1px solid var(--line); border-radius:8px; padding:30px; box-shadow:var(--soft-shadow); }
+    .stars { color:var(--accent); font-size:18px; margin-bottom:18px; letter-spacing:0; }
+    blockquote { color:var(--dark); font-size:21px; line-height:1.34; font-weight:850; margin:0 0 20px; }
+    figcaption { color:var(--muted); font-size:13px; }
+    .faq-contact { display:grid; grid-template-columns:1fr .92fr; gap:24px; align-items:start; }
+    .faq-card, .contact-card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:34px; box-shadow:var(--soft-shadow); }
+    .faq-card h2, .contact-card h2 { margin:0 0 18px; color:var(--dark); font-size:clamp(30px,3.6vw,50px); line-height:1.04; }
+    details { border:1px solid var(--line); border-radius:8px; padding:17px 18px; margin-bottom:12px; background:#fbfdff; }
+    summary { cursor:pointer; color:var(--dark); font-weight:950; }
+    details p { color:var(--muted); margin:12px 0 0; }
+    .contact-lines { display:grid; gap:12px; margin:24px 0; }
+    .contact-lines div { border:1px solid var(--line); border-radius:8px; padding:15px; background:#fbfdff; }
+    .contact-lines strong { display:block; color:var(--muted); font-size:13px; margin-bottom:4px; }
+    .final-cta { color:#fff; background:linear-gradient(135deg,var(--dark),color-mix(in srgb,var(--accent) 42%,var(--dark))); position:relative; overflow:hidden; }
+    .final-cta:before { content:""; position:absolute; right:-90px; top:-140px; width:430px; height:430px; border-radius:50%; background:var(--accent); opacity:.3; }
+    .final-grid { position:relative; display:grid; grid-template-columns:1fr auto; align-items:center; gap:32px; }
+    .final-cta h2 { margin:0 0 14px; font-size:clamp(38px,5vw,70px); line-height:.98; max-width:850px; }
+    .final-cta p { margin:0; color:#dce7ef; max-width:760px; font-size:18px; }
+    .final-actions { display:flex; flex-direction:column; gap:12px; min-width:280px; }
+    footer { background:#080d13; color:#c7d1dc; padding:48px 0 24px; }
+    .footer-grid { display:grid; grid-template-columns:1.2fr .85fr .85fr .85fr; gap:28px; padding-bottom:30px; border-bottom:1px solid rgba(255,255,255,.12); }
+    footer h2, footer h3 { color:#fff; margin:0 0 12px; }
+    footer p { margin:0 0 10px; color:#c7d1dc; }
+    footer a { color:#fff; text-decoration:none; }
+    .footer-bottom { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-top:18px; color:#96a3b1; font-size:13px; }
+    @media (max-width:1120px) {
+      .hero-grid, .signature, .about-location, .faq-contact, .final-grid { grid-template-columns:1fr; }
+      .hero-grid { min-height:auto; }
+      .hero-visual { min-height:580px; }
+      .services-grid, .why-grid, .reviews-grid { grid-template-columns:repeat(2,1fr); }
+      .pricing-grid { grid-template-columns:repeat(3,1fr); }
+      .footer-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:820px) {
+      .wrap { width:min(100% - 30px,1280px); }
+      .nav-inner { min-height:auto; padding:14px 0; align-items:flex-start; }
+      .nav-links { display:none; }
+      .hero-grid { padding:50px 0 58px; gap:32px; }
+      .hero-proof, .trust-grid, .services-grid, .pricing-grid, .why-grid, .gallery-grid, .reviews-grid, .footer-grid { grid-template-columns:1fr; }
+      .hero-visual { min-height:470px; }
+      .visual-stage { transform:none; }
+      .hero-photo { inset:26px 26px 154px 26px; }
+      .floating-card { right:18px; top:52px; width:150px; }
+      .visual-badges { left:26px; right:26px; bottom:26px; grid-template-columns:repeat(2,1fr); }
+      .visual-badges span { min-height:66px; font-size:13px; }
+      section { padding:62px 0; }
+      .section-head { display:block; }
+      .section-head p { margin-top:12px; }
+      .price-card.highlight { transform:none; }
+      .pricing-cta { display:block; }
+      .pricing-cta .btn { margin-top:16px; }
+      .gallery-card:first-child, .gallery-card:nth-child(4) { grid-row:auto; grid-column:auto; }
+      .final-actions { min-width:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-bar">
+    <div class="wrap">
+      <span>Demo concept only - created as an example website proposal.</span>
+      <span>Example pricing - to be confirmed by the business.</span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="mark">DB</span><span>De'Milia Barber</span></a>
+      <div class="nav-links">
+        <a href="#services">Services</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#proof">Gallery</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact">Contact</a>
+        <a class="btn dark" href="tel:01277200008">Call 01277 200008</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="kicker">Premium Brentwood barbering in Brentwood</span>
+        <h1>Sharp Cuts, Classic Grooming &amp; Premium Barbering in Brentwood</h1>
+        <p class="hero-copy">Traditional barbering, clean fades and confident grooming from a local Brentwood barber.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#contact">Book or enquire today</a>
+          <a class="btn light" href="#services">Explore services</a>
+        </div>
+        <div class="hero-badges"><span>Cuts</span><span>Fades</span><span>Beards</span><span>Grooming</span></div>
+        <div class="hero-proof">
+          <div class="proof-card"><strong>Local</strong><span>23a Ongar Road, Brentwood CM15 9AU</span></div>
+          <div class="proof-card"><strong>Clear</strong><span>Services, pricing guidance and opening details are easy to scan.</span></div>
+          <div class="proof-card"><strong>Direct</strong><span>Call 01277 200008 for bookings, questions and availability.</span></div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-label="De'Milia Barber premium visual composition">
+        <div class="visual-stage">
+          <div class="hero-photo"></div>
+          <div class="floating-card"><strong>Brentwood</strong><span>Local customers served with care</span></div>
+          <div class="visual-badges"><span>Cuts</span><span>Fades</span><span>Beards</span><span>Grooming</span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="trust-strip">
+    <div class="wrap trust-grid"><span>Classic cuts and fades</span><span>Beard trim and shaping</span><span>Ongar Road location</span><span>Phone-led bookings</span></div>
+  </div>
+
+  <main>
+    <section id="services" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Services shaped around what local customers actually need.</h2>
+          <p>Each service is presented with a clear benefit, practical detail and a direct enquiry route so visitors can make a decision quickly.</p>
+        </div>
+        <div class="services-grid">
+          <article class="service-card">
+            <div class="service-icon">01</div>
+            <h3>Precision skin fades</h3>
+            <p>Clean fade work, crisp edges and a detailed finish for customers who want a sharp modern cut.</p>
+            <a href="#contact">Enquire about precision skin fades</a>
+          </article>
+          <article class="service-card">
+            <div class="service-icon">02</div>
+            <h3>Classic barber cuts</h3>
+            <p>Traditional scissor and clipper cuts shaped for everyday style, easy maintenance and confidence.</p>
+            <a href="#contact">Enquire about classic barber cuts</a>
+          </article>
+          <article class="service-card">
+            <div class="service-icon">03</div>
+            <h3>Beard trims and line work</h3>
+            <p>Beard shaping, tidy lines and finishing touches that sharpen the full grooming look.</p>
+            <a href="#contact">Enquire about beard trims and line work</a>
+          </article>
+          <article class="service-card">
+            <div class="service-icon">04</div>
+            <h3>Restyle appointments</h3>
+            <p>A more considered cut for customers changing length, shape or overall style.</p>
+            <a href="#contact">Enquire about restyle appointments</a>
+          </article>
+          <article class="service-card">
+            <div class="service-icon">05</div>
+            <h3>Quick tidy-ups</h3>
+            <p>Practical grooming for customers who need a clean-up between full cuts.</p>
+            <a href="#contact">Enquire about quick tidy-ups</a>
+          </article>
+          <article class="service-card">
+            <div class="service-icon">06</div>
+            <h3>Regular grooming plans</h3>
+            <p>A repeat-booking friendly structure for loyal customers who want to stay sharp.</p>
+            <a href="#contact">Enquire about regular grooming plans</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap signature">
+        <div class="signature-copy">
+          <h2>The Sharp Finish Package</h2>
+          <p>A premium haircut and beard-shaping offer presented as a high-value grooming choice, ideal for customers who want the complete finish before a weekend, meeting or night out.</p>
+          <ul><li>Consultation before the cut</li><li>Fade or classic finish</li><li>Beard line and shape</li><li>Styling guidance</li></ul>
+        </div>
+        <div class="signature-visual" aria-label="The Sharp Finish Package visual"></div>
+      </div>
+    </section>
+
+    <section id="pricing" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Simple pricing guidance that helps customers choose.</h2>
+          <p>Indicative pricing makes the buying journey feel transparent while keeping final figures open for confirmation by the business.</p>
+        </div>
+        <div class="pricing-grid">
+          <article class="price-card ">
+            
+            <h3>Classic cut</h3>
+            <p>A clean barber cut with tidy finishing.</p>
+            <strong>&pound;18-24</strong>
+            <small>Example pricing - to be confirmed by the business.</small>
+          </article>
+          <article class="price-card highlight">
+            <em>Popular</em>
+            <h3>Skin fade</h3>
+            <p>Detailed fade work with sharp edges.</p>
+            <strong>&pound;24-30</strong>
+            <small>Example pricing - to be confirmed by the business.</small>
+          </article>
+          <article class="price-card highlight">
+            <em>Best value</em>
+            <h3>Cut &amp; beard shape</h3>
+            <p>Haircut, beard trim and finish.</p>
+            <strong>&pound;30-38</strong>
+            <small>Example pricing - to be confirmed by the business.</small>
+          </article>
+          <article class="price-card ">
+            
+            <h3>Beard trim</h3>
+            <p>Shape, tidy and line work.</p>
+            <strong>&pound;10-16</strong>
+            <small>Example pricing - to be confirmed by the business.</small>
+          </article>
+          <article class="price-card ">
+            
+            <h3>Restyle</h3>
+            <p>Longer appointment for a new look.</p>
+            <strong>&pound;28-40</strong>
+            <small>Example pricing - to be confirmed by the business.</small>
+          </article>
+        </div>
+        <div class="pricing-cta">
+          <p><strong>Not sure what you need?</strong><br>Call 01277 200008 and ask which option fits your visit, booking or enquiry.</p>
+          <a class="btn dark" href="tel:01277200008">Ask about pricing</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Why choose us?</h2>
+          <p>Strong local homepages need trust before the customer makes contact. These proof points make the business feel established, helpful and easy to choose.</p>
+        </div>
+        <div class="why-grid">
+          <article class="why-card"><span>01</span><h3>Local and easy to reach</h3><p>23a Ongar Road, Brentwood CM15 9AU is placed clearly throughout the site so customers know exactly where to go.</p></article>
+          <article class="why-card"><span>02</span><h3>Clear before contact</h3><p>Services, pricing guidance, hours and answers are available before customers need to call.</p></article>
+          <article class="why-card"><span>03</span><h3>Built for conversion</h3><p>Every major section gives visitors a confident next step: call, enquire, visit or ask a question.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="proof" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Visual proof that feels premium and business-specific.</h2>
+          <p>Designed image-style panels give the site a polished commercial feel without relying on copyrighted photography or broken image links.</p>
+        </div>
+        <div class="gallery-grid">
+          <article class="gallery-card gallery-card-1">
+            <div class="grain"></div>
+            <span>Fade Detail</span>
+          </article>
+          <article class="gallery-card gallery-card-2">
+            <div class="grain"></div>
+            <span>Classic Chair</span>
+          </article>
+          <article class="gallery-card gallery-card-3">
+            <div class="grain"></div>
+            <span>Beard Shape</span>
+          </article>
+          <article class="gallery-card gallery-card-4">
+            <div class="grain"></div>
+            <span>Mirror Finish</span>
+          </article>
+          <article class="gallery-card gallery-card-5">
+            <div class="grain"></div>
+            <span>Sharp Tools</span>
+          </article>
+          <article class="gallery-card gallery-card-6">
+            <div class="grain"></div>
+            <span>Ready To Go</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap about-location">
+        <article class="about-card">
+          <h2>About De'Milia Barber</h2>
+          <p>De'Milia Barber should feel confident, established and sharp. The homepage gives customers a premium first impression while keeping the booking route simple.</p>
+          <p>The layout keeps the business voice direct, local and useful, with no friction between interest and enquiry.</p>
+          <a class="btn outline" href="#contact">Contact De'Milia Barber</a>
+        </article>
+        <article class="location-card">
+          <h2>Brentwood location</h2>
+          <p>Serving Brentwood customers around Ongar Road, town centre routes and nearby neighbourhoods looking for clean cuts, fades and grooming.</p>
+          <div class="map-panel" aria-label="Brentwood location visual"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Customer confidence before the first call.</h2>
+          <p>Testimonials are shown as examples only and should be replaced with verified reviews before any live launch.</p>
+        </div>
+        <div class="reviews-grid">
+          <figure>
+            <div class="stars">★★★★★</div>
+            <blockquote>"Sharp cut, proper attention to detail and a confident barber shop feel."</blockquote>
+            <figcaption>Example testimonial 1 - placeholder review, not a verified customer quote.</figcaption>
+          </figure>
+          <figure>
+            <div class="stars">★★★★★</div>
+            <blockquote>"Clean fade and tidy beard work. Easy to call and easy to visit."</blockquote>
+            <figcaption>Example testimonial 2 - placeholder review, not a verified customer quote.</figcaption>
+          </figure>
+          <figure>
+            <div class="stars">★★★★★</div>
+            <blockquote>"A strong local barber experience with a premium finish."</blockquote>
+            <figcaption>Example testimonial 3 - placeholder review, not a verified customer quote.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap faq-contact">
+        <div class="faq-card">
+          <h2>Frequently asked questions</h2>
+          <details>
+            <summary>Do I need to book?</summary>
+            <p>Customers can call ahead to check availability or ask about appointment times.</p>
+          </details>
+          <details>
+            <summary>Do you offer beard trims?</summary>
+            <p>Yes, beard trim and shaping can be shown as a clear service with pricing guidance.</p>
+          </details>
+          <details>
+            <summary>Do you cut children's hair?</summary>
+            <p>Availability should be confirmed by the business before publishing final copy.</p>
+          </details>
+          <details>
+            <summary>Where are you based?</summary>
+            <p>23a Ongar Road, Brentwood CM15 9AU.</p>
+          </details>
+          <details>
+            <summary>Is pricing final?</summary>
+            <p>No. Example pricing - to be confirmed by the business.</p>
+          </details>
+        </div>
+        <div class="contact-card" id="contact">
+          <h2>Call, visit or send an enquiry.</h2>
+          <p>Everything a customer needs is grouped together so they can take action without scrolling back through the page.</p>
+          <div class="contact-lines">
+            <div><strong>Address</strong>23a Ongar Road, Brentwood CM15 9AU</div>
+            <div><strong>Phone</strong><a href="tel:01277200008">01277 200008</a></div>
+            <div><strong>Email</strong>Ask by phone</div>
+            <div><strong>Area served</strong>Brentwood and nearby local customers</div>
+          </div>
+          <a class="btn primary" href="tel:01277200008">Call now</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="wrap final-grid">
+        <div>
+          <h2>Ready to make your next visit simple?</h2>
+          <p>Speak directly with De'Milia Barber for availability, questions, bookings and local advice. Clear service, clear location and a simple next step.</p>
+        </div>
+        <div class="final-actions">
+          <a class="btn primary" href="tel:01277200008">Call 01277 200008</a>
+          <a class="btn light" href="#pricing">Check example pricing</a>
+        </div>
+      </div>
+    </section>
+  
+    <section id="local-seo-structure" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Local SEO structure for 23a Ongar Road</h2>
+          <p>Target barber, skin fade, beard trim and Ongar Road Brentwood searches. This section gives the page clear local search relevance without making the customer-facing copy feel forced.</p>
+        </div>
+        <div class="why-grid">
+          <article class="why-card"><span>SEO</span><h3>Primary local search</h3><p>Barber in 23a Ongar Road, Brentwood CM15 9AU</p></article>
+          <article class="why-card"><span>NAP</span><h3>Consistent contact signals</h3><p>Name, address and phone are visible across the site for local trust.</p></article>
+          <article class="why-card"><span>GBP</span><h3>Google Business Profile support</h3><p>Service, location and review sections are structured to support profile clicks and calls.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <h2>De'Milia Barber</h2>
+        <p>Traditional barbering, clean fades and confident grooming from a local Brentwood barber.</p>
+        <p>Demo concept only - created as an example website proposal.</p>
+      </div>
+      <div>
+        <h3>Contact</h3>
+        <p>23a Ongar Road, Brentwood CM15 9AU</p>
+        <p><a href="tel:01277200008">01277 200008</a></p>
+        <p>Ask by phone</p>
+      </div>
+      <div>
+        <h3>Services</h3>
+        <p>Precision skin fades</p>
+        <p>Classic barber cuts</p>
+        <p>Beard trims and line work</p>
+      </div>
+      <div>
+        <h3>Visit</h3>
+        <p>Brentwood local service</p>
+        <p>Call before travelling to confirm availability.</p>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>Example pricing - to be confirmed by the business.</span>
+      <span>Example testimonials are placeholders and not verified customer quotes.</span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,515 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Business Control Centre</title>
+  <style>
+    :root {
+      --bg:#070b15;
+      --panel:#0d1422;
+      --panel2:#111a2b;
+      --glass:rgba(18,27,45,.76);
+      --line:rgba(148,163,184,.16);
+      --text:#eef4ff;
+      --muted:#9aa8bd;
+      --blue:#4da3ff;
+      --purple:#7657ff;
+      --cyan:#38d5ff;
+      --green:#30d384;
+      --amber:#ffb84d;
+      --red:#ff5c73;
+      --shadow:0 24px 70px rgba(0,0,0,.36);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color:var(--text); background:radial-gradient(circle at 78% -10%, rgba(118,87,255,.24), transparent 34%), radial-gradient(circle at 24% 0%, rgba(56,213,255,.12), transparent 30%), var(--bg); }
+    a { color:inherit; }
+    .app { display:grid; grid-template-columns:280px minmax(0,1fr); min-height:100vh; }
+    .sidebar { position:sticky; top:0; height:100vh; padding:26px 18px; background:linear-gradient(180deg,rgba(9,14,25,.96),rgba(7,11,21,.94)); border-right:1px solid var(--line); display:flex; flex-direction:column; gap:24px; }
+    .logo { display:flex; align-items:center; gap:13px; padding:0 10px 18px; border-bottom:1px solid var(--line); }
+    .rocket { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--purple),var(--blue)); box-shadow:0 14px 36px rgba(118,87,255,.36); font-weight:950; }
+    .logo strong { display:block; font-size:16px; letter-spacing:.08em; text-transform:uppercase; }
+    .logo span { display:block; color:var(--muted); font-size:12px; letter-spacing:.26em; text-transform:uppercase; margin-top:2px; }
+    .side-nav { display:grid; gap:8px; }
+    .side-nav a { display:flex; align-items:center; gap:12px; min-height:46px; padding:0 12px; text-decoration:none; color:#c7d2e4; border-radius:10px; font-weight:760; }
+    .side-nav a.active { color:#fff; background:linear-gradient(135deg,rgba(118,87,255,.82),rgba(77,163,255,.38)); box-shadow:0 16px 34px rgba(73,79,255,.2); }
+    .side-icon { width:24px; height:24px; border-radius:8px; display:grid; place-items:center; background:rgba(255,255,255,.08); color:#dbeafe; font-size:12px; font-weight:900; }
+    .mission { margin-top:auto; padding:20px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02)); box-shadow:var(--shadow); }
+    .mission h3 { margin:0 0 12px; font-size:17px; }
+    .mission p { margin:0 0 14px; color:#c3cde0; line-height:1.55; }
+    .mission .button { display:flex; justify-content:center; align-items:center; min-height:40px; border-radius:10px; background:linear-gradient(135deg,var(--purple),#5637d8); text-decoration:none; font-weight:850; }
+    .main { padding:28px 28px 22px; overflow:hidden; }
+    .topbar { display:flex; justify-content:space-between; gap:22px; align-items:flex-start; margin-bottom:26px; }
+    h1 { margin:0; font-size:clamp(30px,4vw,48px); line-height:1; letter-spacing:0; }
+    .subtitle { margin:8px 0 0; color:#a8b5c9; font-size:16px; }
+    .top-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    .updated { color:#b8c4d7; font-size:13px; display:flex; align-items:center; gap:8px; white-space:nowrap; }
+    .add-btn { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:10px; padding:0 16px; color:#fff; background:linear-gradient(135deg,var(--purple),#5147e8); box-shadow:0 16px 34px rgba(85,75,255,.28); font-weight:900; text-decoration:none; }
+    .kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:18px; margin-bottom:20px; }
+    .kpi { position:relative; overflow:hidden; min-height:150px; border:1px solid var(--line); border-radius:16px; padding:20px; background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025)); box-shadow:var(--shadow); }
+    .kpi:before { content:""; position:absolute; inset:auto -20px -44px -20px; height:82px; opacity:.5; background:radial-gradient(ellipse at 30% 0%, var(--glow), transparent 65%); }
+    .kpi .icon { width:52px; height:52px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--glow),rgba(255,255,255,.18)); box-shadow:0 16px 36px color-mix(in srgb,var(--glow) 32%,transparent); font-weight:950; float:left; margin-right:14px; }
+    .kpi strong { display:block; font-size:34px; line-height:1; }
+    .kpi span { display:block; color:#fff; font-weight:860; margin-top:3px; }
+    .kpi p { clear:both; margin:18px 0 0; color:#aab6c9; font-size:13px; line-height:1.45; }
+    .kpi.blue { --glow:var(--blue); } .kpi.amber { --glow:var(--amber); } .kpi.green { --glow:var(--green); } .kpi.purple { --glow:var(--purple); } .kpi.cyan { --glow:var(--cyan); }
+    .panel { border:1px solid var(--line); border-radius:16px; background:rgba(13,20,34,.74); box-shadow:var(--shadow); backdrop-filter:blur(18px); overflow:hidden; }
+    .panel.focused { box-shadow:0 0 0 2px rgba(77,163,255,.44), var(--shadow); }
+    .view-notice { display:none; margin:0 0 14px; border:1px solid rgba(77,163,255,.28); border-radius:14px; padding:14px 16px; background:linear-gradient(135deg,rgba(77,163,255,.12),rgba(118,87,255,.1)); color:#dce9fb; }
+    .view-notice.active { display:block; }
+    .view-notice strong { display:block; color:#fff; margin-bottom:3px; }
+    .filters { display:grid; grid-template-columns:minmax(260px,1fr) 180px 190px 180px auto; gap:12px; padding:16px; border-bottom:1px solid var(--line); }
+    input, select, button { font:inherit; }
+    .control { min-height:42px; width:100%; border:1px solid var(--line); border-radius:10px; background:rgba(6,10,18,.72); color:#dce6f5; padding:0 13px; outline:none; }
+    .clear { min-height:42px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.04); color:#dce6f5; padding:0 14px; font-weight:850; cursor:pointer; }
+    .table-wrap { overflow:auto; }
+    table { width:100%; min-width:1280px; border-collapse:collapse; }
+    th, td { padding:14px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
+    th { color:#c8d3e3; font-size:12px; letter-spacing:.02em; background:rgba(255,255,255,.025); cursor:pointer; white-space:nowrap; }
+    td { color:#d9e3f2; font-size:13px; }
+    .biz { display:flex; align-items:center; gap:12px; min-width:220px; }
+    .avatar { width:42px; height:42px; border-radius:50%; display:grid; place-items:center; background:#fff; color:#0f172a; font-weight:950; box-shadow:0 10px 26px rgba(0,0,0,.22); }
+    .biz strong { display:block; color:#fff; font-size:14px; }
+    .biz small { display:block; color:#8fa0b9; margin-top:2px; }
+    .muted { color:#95a5bc; }
+    .reason { max-width:280px; line-height:1.38; color:#c5d1e2; }
+    .seo-score { width:52px; height:52px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:950; background:conic-gradient(var(--green) calc(var(--score) * 1%), rgba(255,255,255,.1) 0); position:relative; }
+    .seo-score:before { content:""; position:absolute; inset:6px; border-radius:50%; background:#0b1220; }
+    .seo-score span { position:relative; z-index:1; }
+    .badge { display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:6px 10px; font-size:11px; font-weight:950; white-space:nowrap; }
+    .High { color:#fff; background:linear-gradient(135deg,#ff4967,#ff8a3d); }
+    .Medium { color:#261300; background:linear-gradient(135deg,#ffb84d,#ffd166); }
+    .status { color:#062d19; background:linear-gradient(135deg,#4ade80,#22c55e); }
+    .neutral { color:#dbeafe; background:rgba(77,163,255,.14); border:1px solid rgba(77,163,255,.28); }
+    .value { color:#fff; font-weight:950; }
+    .actions { display:flex; gap:7px; flex-wrap:wrap; min-width:300px; }
+    .actions a { min-height:32px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:8px; padding:0 9px; font-size:12px; font-weight:900; color:#dfe9f8; background:rgba(255,255,255,.06); border:1px solid var(--line); }
+    .actions a.primary { background:linear-gradient(135deg,var(--blue),var(--purple)); color:#fff; border-color:transparent; }
+    .lower { display:grid; grid-template-columns:1fr 1.1fr 1.3fr 1.1fr; gap:18px; margin-top:18px; }
+    .card { min-height:210px; border:1px solid var(--line); border-radius:16px; padding:20px; background:rgba(13,20,34,.74); box-shadow:var(--shadow); }
+    .card h2 { margin:0 0 16px; font-size:18px; }
+    .section-title { margin:24px 0 14px; display:flex; justify-content:space-between; gap:16px; align-items:end; }
+    .section-title h2 { margin:0; font-size:24px; }
+    .section-title p { margin:4px 0 0; color:var(--muted); }
+    .donut { width:126px; height:126px; border-radius:50%; background:conic-gradient(var(--red) 0 40%, var(--amber) 40% 100%); margin:8px auto 14px; position:relative; }
+    .donut:after { content:""; position:absolute; inset:30px; background:var(--panel); border-radius:50%; }
+    .legend { display:grid; gap:9px; color:#cbd6e5; font-size:13px; }
+    .legend span:before { content:""; display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:8px; background:var(--c); }
+    .task, .activity, .quick { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding:10px 0; color:#cbd6e5; font-size:13px; }
+    .task:first-of-type, .activity:first-of-type, .quick:first-of-type { padding-top:0; }
+    .quick a { color:#dfe9f8; text-decoration:none; }
+    .count { min-width:26px; height:24px; border-radius:8px; display:grid; place-items:center; background:linear-gradient(135deg,var(--purple),#4f46e5); color:#fff; font-weight:950; }
+    footer { display:flex; justify-content:space-between; gap:16px; color:#8fa0b9; padding:18px 0 0; font-size:13px; flex-wrap:wrap; }
+    .row-highlight { outline:2px solid rgba(77,163,255,.22); outline-offset:-2px; background:rgba(77,163,255,.045); }
+    .proposal-mode .actions a[href$="proposal.html"], .outreach-mode .actions a[href$="outreach-email.html"], .website-mode .actions a[href$="website.html"] { box-shadow:0 0 0 2px rgba(77,163,255,.45); }
+    @media (max-width:1180px) { .app { grid-template-columns:1fr; } .sidebar { position:relative; height:auto; } .side-nav { grid-template-columns:repeat(4,1fr); } .mission { display:none; } .kpis { grid-template-columns:repeat(2,1fr); } .filters { grid-template-columns:1fr 1fr; } .lower { grid-template-columns:1fr 1fr; } }
+    @media (max-width:720px) { .main { padding:20px 14px; } .topbar { display:block; } .top-actions { justify-content:flex-start; margin-top:16px; } .kpis, .filters, .lower, .side-nav { grid-template-columns:1fr; } .sidebar { padding:18px 14px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo"><div class="rocket">LB</div><div><strong>Local Business</strong><span>Control Centre</span></div></div>
+      <nav class="side-nav">
+        <a class="active" href="#top" data-view="dashboard"><span class="side-icon">D</span>Dashboard</a>
+        <a href="#prospects" data-view="prospects"><span class="side-icon">P</span>Prospects</a>
+        <a href="#prospects" data-view="websites"><span class="side-icon">W</span>Websites</a>
+        <a href="#prospects" data-view="proposals"><span class="side-icon">PR</span>Proposals</a>
+        <a href="#prospects" data-view="outreach"><span class="side-icon">O</span>Outreach</a>
+        <a href="#reports" data-view="reports"><span class="side-icon">R</span>Reports</a>
+        <a href="#settings" data-view="settings"><span class="side-icon">S</span>Settings</a>
+      </nav>
+      <section class="mission">
+        <h3>Outreach Mission</h3>
+        <p>High-quality local business websites that win trust and generate leads.</p>
+        <p>Quality over quantity. Real value before outreach.</p>
+        <a class="button" href="#">View Mission</a>
+      </section>
+    </aside>
+
+    <main class="main" id="top">
+      <header class="topbar">
+        <div>
+          <h1>Welcome, Shane</h1>
+          <p class="subtitle">Your local prospecting &amp; outreach command centre</p>
+        </div>
+        <div class="top-actions">
+          <span class="updated">Last updated: 23 May 2026, 07:12 GMT+1</span>
+          <a class="add-btn" href="/dashboard/add-prospect.html">Add New Prospect</a>
+        </div>
+      </header>
+
+      <section class="kpis">
+        <article class="kpi blue"><div class="icon">TP</div><strong>5</strong><span>Total Prospects</span><p>Five curated local business opportunities.</p></article>
+        <article class="kpi amber"><div class="icon">HP</div><strong>2</strong><span>High Priority</span><p>Immediate review candidates for outreach.</p></article>
+        <article class="kpi green"><div class="icon">WR</div><strong>5</strong><span>Websites Ready</span><p>Premium one-page website previews created.</p></article>
+        <article class="kpi purple"><div class="icon">ED</div><strong>5</strong><span>Emails Drafted</span><p>Drafts ready for manual approval only.</p></article>
+        <article class="kpi cyan"><div class="icon">RR</div><strong>5</strong><span>Ready For Review</span><p>All set for your review and approval.</p></article>
+      </section>
+
+      <div class="view-notice" id="viewNotice"><strong id="viewTitle"></strong><span id="viewText"></span></div>
+      <section class="panel" id="prospects">
+        <div class="filters">
+          <input class="control" id="search" type="search" placeholder="Search businesses, categories, reasons...">
+          <select class="control" id="priority"><option value="">All priorities</option><option>High</option><option>Medium</option></select>
+          <select class="control" id="category"><option value="">All categories</option><option>Cafe</option><option>Barber</option><option>Dog Groomer</option><option>Vehicle Services</option><option>Garage</option></select>
+          <select class="control" id="status"><option value="">All statuses</option><option>Ready for review</option></select>
+          <button class="clear" id="clear">Clear Filters</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-key="name">Business</th>
+                <th data-key="category">Category</th>
+                <th data-key="location">Location</th>
+                <th data-key="websiteStatus">Website Status</th>
+                <th data-key="websiteScore">Website Score</th>
+                <th data-key="score">SEO Score</th>
+                <th data-key="priority">Priority</th>
+                <th data-key="reason">Reason To Contact</th>
+                <th data-key="contactFound">Contact Found</th>
+                <th data-key="emailDraft">Email Draft</th>
+                <th data-key="websiteReady">Website Ready</th>
+                <th data-key="status">Status</th>
+                <th data-key="nextAction">Next Action</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="lower">
+        <article class="card">
+          <h2>Priority Breakdown</h2>
+          <div class="donut"></div>
+          <div class="legend"><span style="--c:var(--red)">High Priority: 2</span><span style="--c:var(--amber)">Medium Priority: 3</span></div>
+        </article>
+        <article class="card">
+          <h2>Next Actions</h2>
+          <div class="task"><span>Review The Orchard Cafe website</span><b class="count">1</b></div>
+          <div class="task"><span>Approve or revise high-priority drafts</span><b class="count">2</b></div>
+          <div class="task"><span>Check live sites before contact</span><b class="count">3</b></div>
+          <div class="task"><span>Keep outreach manual</span><b class="count">5</b></div>
+        </article>
+        <article class="card">
+          <h2>Recent Activity</h2>
+          <div class="activity"><span>Dashboard simplified into sales pipeline</span><span>Today</span></div>
+          <div class="activity"><span>website.html previews generated</span><span>Today</span></div>
+          <div class="activity"><span>Proposal pages refreshed</span><span>Today</span></div>
+          <div class="activity"><span>Email drafts marked approval required</span><span>Today</span></div>
+        </article>
+        <article class="card">
+          <h2>Quick Links</h2>
+          <div class="quick"><a href="/businesses/the-orchard-cafe-brentwood/website.html">Review first website</a><span>Open</span></div>
+          <div class="quick"><a href="/businesses/the-orchard-cafe-brentwood/proposal.html">Review first proposal</a><span>Open</span></div>
+          <div class="quick"><a href="/businesses/the-orchard-cafe-brentwood/outreach-email.html">Review first email</a><span>Open</span></div>
+          <div class="quick"><a href="/businesses/">Open businesses folder</a><span>Open</span></div>
+        </article>
+      </section>
+
+      <section id="reports">
+        <div class="section-title">
+          <div><h2>Reports</h2><p>Operational summaries for the current prospect list.</p></div>
+        </div>
+        <div class="lower">
+          <article class="card">
+            <h2>Priority Breakdown</h2>
+            <div class="task"><span>High priority</span><b class="count">2</b></div>
+            <div class="task"><span>Medium priority</span><b class="count">3</b></div>
+          </article>
+          <article class="card">
+            <h2>Website Readiness Summary</h2>
+            <div class="task"><span>Ready</span><b class="count">5</b></div>
+            <div class="task"><span>Needs review</span><b class="count">0</b></div>
+          </article>
+          <article class="card">
+            <h2>Email Draft Summary</h2>
+            <div class="task"><span>Drafted</span><b class="count">5</b></div>
+            <div class="task"><span>Sent</span><b class="count">0</b></div>
+          </article>
+          <article class="card">
+            <h2>Contact Found Summary</h2>
+            <div class="task"><span>Email found</span><b class="count">2</b></div>
+            <div class="task"><span>Phone only</span><b class="count">3</b></div>
+            <div class="task"><span>Needs manual check</span><b class="count">0</b></div>
+          </article>
+          <article class="card">
+            <h2>Quality Check Summary</h2>
+            <div class="task"><span>No Markdown dashboard links</span><b class="count">OK</b></div>
+            <div class="task"><span>Only simplified action buttons</span><b class="count">OK</b></div>
+            <div class="task"><span>No emails sent automatically</span><b class="count">OK</b></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="settings">
+        <div class="section-title">
+          <div><h2>Settings / System</h2><p>Useful local paths and operating reminders.</p></div>
+        </div>
+        <div class="lower">
+          <article class="card"><h2>Workspace Path</h2><p>C:\Users\ai-bot\.openclaw\workspace\control-centre</p></article>
+          <article class="card"><h2>Dashboard Path</h2><p>C:\Users\ai-bot\.openclaw\workspace\control-centre\dashboard\index.html</p></article>
+          <article class="card"><h2>Add Prospect Page</h2><p>C:\Users\ai-bot\.openclaw\workspace\control-centre\dashboard\add-prospect.html</p></article>
+          <article class="card"><h2>Quality Check Script</h2><p>C:\Users\ai-bot\.openclaw\workspace\control-centre\automations\check-control-centre-quality.ps1</p></article>
+          <article class="card"><h2>Full Refresh Script</h2><p>C:\Users\ai-bot\.openclaw\workspace\control-centre\automations\run-full-refresh.ps1</p></article>
+          <article class="card"><h2>Outreach Rules</h2><p>No emails are sent automatically.</p><p>Review all contact details manually before outreach.</p></article>
+        </div>
+      </section>
+
+      <footer>
+        <span>5 high-quality local business prospects | Premium website concepts | Built to win trust and generate leads</span>
+        <span>Local Business Control Centre</span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const rows = [
+      {
+            "slug": "the-orchard-cafe-brentwood",
+            "name": "The Orchard Cafe",
+            "initials": "OC",
+            "category": "Cafe",
+            "location": "114 Orchard Ave, Brentwood CM13 2DP",
+            "priority": "High",
+            "websiteStatus": "No dedicated website found",
+            "websiteScore": 58,
+            "score": 72,
+            "reason": "Dedicated website could turn local cafe searches into visits, takeaway calls and menu views.",
+            "contactFound": "Phone only",
+            "emailDraft": "Drafted",
+            "websiteReady": "Ready",
+            "status": "Ready for review",
+            "nextAction": "Review website and proposal before manual outreach.",
+            "folderPath": "C:\\Users\\ai-bot\\.openclaw\\workspace\\control-centre\\businesses\\the-orchard-cafe-brentwood"
+      },
+      {
+            "slug": "de-milia-barber-brentwood",
+            "name": "De'Milia Barber",
+            "initials": "DB",
+            "category": "Barber",
+            "location": "23a Ongar Road, Brentwood CM15 9AU",
+            "priority": "High",
+            "websiteStatus": "Listing-led web presence",
+            "websiteScore": 62,
+            "score": 70,
+            "reason": "Sharper site could make services, pricing guidance and phone booking easier.",
+            "contactFound": "Phone only",
+            "emailDraft": "Drafted",
+            "websiteReady": "Ready",
+            "status": "Ready for review",
+            "nextAction": "Review website and proposal before manual outreach.",
+            "folderPath": "C:\\Users\\ai-bot\\.openclaw\\workspace\\control-centre\\businesses\\de-milia-barber-brentwood"
+      },
+      {
+            "slug": "wagnificent-dog-groomers-brentwood",
+            "name": "Wagnificent Dog Groomers",
+            "initials": "WG",
+            "category": "Dog Groomer",
+            "location": "54 Hutton Road, Brentwood CM15 8LB",
+            "priority": "Medium",
+            "websiteStatus": "Website listed; mobile journey needs review",
+            "websiteScore": 70,
+            "score": 68,
+            "reason": "Cleaner booking-focused site could improve grooming enquiries and trust.",
+            "contactFound": "Phone only",
+            "emailDraft": "Drafted",
+            "websiteReady": "Ready",
+            "status": "Ready for review",
+            "nextAction": "Compare main preview with live mobile journey.",
+            "folderPath": "C:\\Users\\ai-bot\\.openclaw\\workspace\\control-centre\\businesses\\wagnificent-dog-groomers-brentwood"
+      },
+      {
+            "slug": "shenfield-vehicle-services-shenfield",
+            "name": "Shenfield Vehicle Services",
+            "initials": "SV",
+            "category": "Vehicle Services",
+            "location": "17A Hutton Road, Shenfield, Brentwood CM15 8JU",
+            "priority": "Medium",
+            "websiteStatus": "Dedicated site appears dated/basic",
+            "websiteScore": 64,
+            "score": 66,
+            "reason": "Clearer service and diagnostics journey could improve calls from Shenfield drivers.",
+            "contactFound": "Email found",
+            "emailDraft": "Drafted",
+            "websiteReady": "Ready",
+            "status": "Ready for review",
+            "nextAction": "Review proposal, then compare against current site.",
+            "folderPath": "C:\\Users\\ai-bot\\.openclaw\\workspace\\control-centre\\businesses\\shenfield-vehicle-services-shenfield"
+      },
+      {
+            "slug": "the-garage-group-essex-brentwood",
+            "name": "The Garage Group Essex",
+            "initials": "GG",
+            "category": "Garage",
+            "location": "The Old Stable Yard, Sandpit Lane, Brentwood CM14 5QD",
+            "priority": "Medium",
+            "websiteStatus": "Dedicated site with dated contact journey",
+            "websiteScore": 66,
+            "score": 67,
+            "reason": "Modern service-led site could improve diagnostics, MOT and fleet enquiries.",
+            "contactFound": "Email found",
+            "emailDraft": "Drafted",
+            "websiteReady": "Ready",
+            "status": "Ready for review",
+            "nextAction": "Review proposal and service positioning.",
+            "folderPath": "C:\\Users\\ai-bot\\.openclaw\\workspace\\control-centre\\businesses\\the-garage-group-essex-brentwood"
+      }
+];
+    const tbody = document.querySelector("#tbody");
+    const search = document.querySelector("#search");
+    const priority = document.querySelector("#priority");
+    const category = document.querySelector("#category");
+    const statusFilter = document.querySelector("#status");
+    const clear = document.querySelector("#clear");
+    const sideLinks = document.querySelectorAll(".side-nav a[data-view]");
+    const prospectsPanel = document.querySelector("#prospects");
+    const viewNotice = document.querySelector("#viewNotice");
+    const viewTitle = document.querySelector("#viewTitle");
+    const viewText = document.querySelector("#viewText");
+    let viewMode = "dashboard";
+    let sortKey = "priority";
+    let sortDir = 1;
+    function badge(value, kind) {
+      const klass = kind === "status" ? "status" : kind === "neutral" ? "neutral" : value;
+      return '<span class="badge ' + klass + '">' + value + '</span>';
+    }
+    function actions(row) {
+      const base = "/businesses/" + row.slug + "/";
+      return '<div class="actions">' +
+        '<a class="primary" href="' + base + 'website.html">View Website</a>' +
+        '<a href="' + base + 'proposal.html">Proposal</a>' +
+        '<a href="' + base + 'outreach-email.html">Email Draft</a>' +
+        '<a title="' + row.folderPath + '" href="' + base + '">Business Pack</a>' +
+      '</div>';
+    }
+    function render() {
+      const q = search.value.trim().toLowerCase();
+      const p = priority.value;
+      const c = category.value;
+      const s = statusFilter.value;
+      const filtered = rows.filter(row => {
+        const haystack = Object.values(row).join(" ").toLowerCase();
+        const baseMatch = (!q || haystack.includes(q)) && (!p || row.priority === p) && (!c || row.category === c) && (!s || row.status === s);
+        if (!baseMatch) return false;
+        if (viewMode === "websites") return row.websiteReady === "Ready" || row.websiteReady === "Needs review";
+        if (viewMode === "outreach") return ["Drafted","Needs review","Approved","Sent","Do not contact"].includes(row.emailDraft);
+        return true;
+      }).sort((a,b) => {
+        const av = a[sortKey] || "";
+        const bv = b[sortKey] || "";
+        return String(av).localeCompare(String(bv), undefined, { numeric:true }) * sortDir;
+      });
+      tbody.innerHTML = filtered.map(row => '<tr class="' + (viewMode === "websites" || viewMode === "proposals" || viewMode === "outreach" ? "row-highlight" : "") + '">' +
+        '<td><div class="biz"><div class="avatar">' + row.initials + '</div><div><strong>' + row.name + '</strong><small>' + row.slug + '</small></div></div></td>' +
+        '<td>' + row.category + '</td>' +
+        '<td class="muted">' + row.location + '</td>' +
+        '<td>' + row.websiteStatus + '</td>' +
+        '<td><div class="seo-score" style="--score:' + row.websiteScore + '"><span>' + row.websiteScore + '</span></div></td>' +
+        '<td><div class="seo-score" style="--score:' + row.score + '"><span>' + row.score + '</span></div></td>' +
+        '<td>' + badge(row.priority) + '</td>' +
+        '<td class="reason">' + row.reason + '</td>' +
+        '<td>' + badge(row.contactFound, "neutral") + '</td>' +
+        '<td>' + badge(row.emailDraft, "neutral") + '</td>' +
+        '<td>' + badge(row.websiteReady, "status") + '</td>' +
+        '<td>' + badge(row.status, "status") + '</td>' +
+        '<td class="muted">' + row.nextAction + '</td>' +
+        '<td>' + actions(row) + '</td>' +
+      '</tr>').join("");
+    }
+    function clearFilters() {
+      search.value = "";
+      priority.value = "";
+      category.value = "";
+      statusFilter.value = "";
+    }
+    function setActive(view) {
+      sideLinks.forEach(link => link.classList.toggle("active", link.dataset.view === view));
+      document.body.classList.toggle("website-mode", view === "websites");
+      document.body.classList.toggle("proposal-mode", view === "proposals");
+      document.body.classList.toggle("outreach-mode", view === "outreach");
+    }
+    function showNotice(title, text) {
+      if (!title) {
+        viewNotice.classList.remove("active");
+        viewTitle.textContent = "";
+        viewText.textContent = "";
+        return;
+      }
+      viewTitle.textContent = title;
+      viewText.textContent = text;
+      viewNotice.classList.add("active");
+    }
+    function focusProspects() {
+      prospectsPanel.classList.add("focused");
+      setTimeout(() => prospectsPanel.classList.remove("focused"), 1300);
+      prospectsPanel.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+    function runView(view) {
+      viewMode = view;
+      setActive(view);
+      if (view === "dashboard") {
+        clearFilters();
+        showNotice("", "");
+        render();
+        window.scrollTo({ top:0, behavior:"smooth" });
+        return;
+      }
+      if (view === "prospects") {
+        clearFilters();
+        showNotice("Prospect view", "All businesses are visible. Filters have been cleared.");
+        render();
+        focusProspects();
+        return;
+      }
+      if (view === "websites") {
+        showNotice("Website preview view", "Showing prospects where the website preview is ready or needs review.");
+        render();
+        focusProspects();
+        return;
+      }
+      if (view === "proposals") {
+        showNotice("Proposal review view", "Proposal action buttons are highlighted for quick review.");
+        render();
+        focusProspects();
+        return;
+      }
+      if (view === "outreach") {
+        showNotice("Outreach review view", "Showing prospects with an email draft or outreach status to review.");
+        render();
+        focusProspects();
+        return;
+      }
+      if (view === "reports") {
+        showNotice("Reports view", "Priority, readiness, email, contact and quality summaries are below.");
+        render();
+        document.querySelector("#reports").scrollIntoView({ behavior:"smooth", block:"start" });
+        return;
+      }
+      if (view === "settings") {
+        showNotice("Settings view", "System paths and outreach safety reminders are below.");
+        render();
+        document.querySelector("#settings").scrollIntoView({ behavior:"smooth", block:"start" });
+      }
+    }
+    document.querySelectorAll("th[data-key]").forEach(th => th.addEventListener("click", () => {
+      const key = th.dataset.key;
+      sortDir = sortKey === key ? sortDir * -1 : 1;
+      sortKey = key;
+      render();
+    }));
+    [search, priority, category, statusFilter].forEach(el => el.addEventListener("input", render));
+    clear.addEventListener("click", () => { clearFilters(); render(); });
+    sideLinks.forEach(link => link.addEventListener("click", (event) => {
+      event.preventDefault();
+      runView(link.dataset.view);
+    }));
+    render();
+  </script>
+</body>
+</html>
+
+
