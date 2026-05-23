@@ -32,6 +32,17 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function publicNotes(value) {
+  const cleaned = String(value || "")
+    .split(/(?<=[.!?])\s+/)
+    .filter(sentence => !/\bprices?\b|\bpricing\b|£|\$/.test(sentence))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned || "No additional notes yet.";
+}
+
 function getGitHubConfig(env) {
   const owner = env.GITHUB_OWNER;
   const repo = env.GITHUB_REPO;
@@ -644,7 +655,7 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
   const safeName = escapeHtml(businessName);
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
-  const safeNotes = escapeHtml(notes || "No additional notes yet.");
+  const safeNotes = escapeHtml(publicNotes(notes));
   const safeCategory = escapeHtml(category);
   const safeBadge = escapeHtml(copy.badge);
   const safeHeadline = escapeHtml(copy.headline);
@@ -1224,7 +1235,7 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes, exist
   const safeName = escapeHtml(businessName);
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
-  const safeNotes = escapeHtml(notes || "No additional notes yet.");
+  const safeNotes = escapeHtml(publicNotes(notes));
   const safeContext = escapeHtml(existingContext && existingContext.fetched
     ? `Existing website context reviewed from ${existingContext.domain}.`
     : (existingContext && existingContext.reason ? existingContext.reason : "No existing website context was available."));
@@ -1466,7 +1477,7 @@ function buildOutreachEmailHtml({ businessName, websiteUrl, description, notes, 
   const safeName = escapeHtml(businessName);
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
-  const safeNotes = escapeHtml(notes || "No additional notes yet.");
+  const safeNotes = escapeHtml(publicNotes(notes));
   const contextLine = existingContext && existingContext.fetched
     ? `I had a quick look at your current site and used it only as light redesign context.`
     : `I could not rely on an existing website, so I based the idea on the business description.`;
