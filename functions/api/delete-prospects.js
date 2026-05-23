@@ -1,7 +1,15 @@
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-allow-headers": "Content-Type",
+  "access-control-max-age": "86400"
+};
+
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body, null, 2), {
     status,
     headers: {
+      ...CORS_HEADERS,
       "content-type": "application/json; charset=utf-8"
     }
   });
@@ -37,105 +45,97 @@ function githubHeaders(token) {
   };
 }
 
-function assertSafeSlug(slug) {
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    throw new Error(`Unsafe business slug: ${slug}`);
+function isSafeSlug(slug) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}
+
+async function githubRequest(env, path, options = {}) {
+  const { owner, repo, token } = getGitHubConfig(env);
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}${path}`, {
+    ...options,
+    headers: {
+      ...githubHeaders(token),
+      ...(options.headers || {})
+    }
+  });
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(`GitHub request failed: ${response.status} ${text}`);
   }
+
+  return data;
 }
 
 async function githubGetFile(env, path) {
-  const { owner, repo, branch, token } = getGitHubConfig(env);
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`;
-  const response = await fetch(url, {
-    method: "GET",
-    headers: githubHeaders(token)
-  });
-  const text = await response.text();
+  const { branch } = getGitHubConfig(env);
+  const data = await githubRequest(env, `/contents/${path}?ref=${encodeURIComponent(branch)}`);
 
-  if (!response.ok) {
-    throw new Error(`GitHub file fetch failed: ${response.status} ${text}`);
-  }
-
-  const data = JSON.parse(text);
   return {
     sha: data.sha,
     content: fromBase64(String(data.content || "").replace(/\s/g, ""))
   };
 }
 
-async function githubPutFile(env, path, content, message, sha) {
-  const { owner, repo, branch, token } = getGitHubConfig(env);
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-  const body = {
-    message,
-    content: toBase64(content),
-    branch
+async function githubGetBranch(env) {
+  const { branch } = getGitHubConfig(env);
+  const ref = await githubRequest(env, `/git/ref/heads/${encodeURIComponent(branch)}`);
+  const commit = await githubRequest(env, `/git/commits/${ref.object.sha}`);
+
+  return {
+    commitSha: ref.object.sha,
+    treeSha: commit.tree.sha
   };
-
-  if (sha) body.sha = sha;
-
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: githubHeaders(token),
-    body: JSON.stringify(body)
-  });
-  const text = await response.text();
-
-  if (!response.ok) {
-    throw new Error(`GitHub write failed: ${response.status} ${text}`);
-  }
-
-  return JSON.parse(text);
 }
 
-async function githubGetBranchSha(env) {
-  const { owner, repo, branch, token } = getGitHubConfig(env);
-  const url = `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`;
-  const response = await fetch(url, {
-    method: "GET",
-    headers: githubHeaders(token)
-  });
-  const text = await response.text();
-
-  if (!response.ok) {
-    throw new Error(`GitHub branch lookup failed: ${response.status} ${text}`);
-  }
-
-  return JSON.parse(text).object.sha;
+async function githubListFiles(env, treeSha) {
+  const data = await githubRequest(env, `/git/trees/${treeSha}?recursive=1`);
+  return data.tree.filter(item => item.type === "blob");
 }
 
-async function githubListFiles(env) {
-  const { owner, repo, token } = getGitHubConfig(env);
-  const branchSha = await githubGetBranchSha(env);
-  const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branchSha}?recursive=1`;
-  const response = await fetch(url, {
-    method: "GET",
-    headers: githubHeaders(token)
+async function githubCreateBlob(env, content) {
+  const data = await githubRequest(env, "/git/blobs", {
+    method: "POST",
+    body: JSON.stringify({
+      content: toBase64(content),
+      encoding: "base64"
+    })
   });
-  const text = await response.text();
 
-  if (!response.ok) {
-    throw new Error(`GitHub tree lookup failed: ${response.status} ${text}`);
-  }
-
-  return JSON.parse(text).tree.filter(item => item.type === "blob");
+  return data.sha;
 }
 
-async function githubDeleteFile(env, path, sha, message) {
-  const { owner, repo, branch, token } = getGitHubConfig(env);
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-  const response = await fetch(url, {
-    method: "DELETE",
-    headers: githubHeaders(token),
-    body: JSON.stringify({ message, sha, branch })
+async function githubCreateTree(env, baseTreeSha, tree) {
+  return githubRequest(env, "/git/trees", {
+    method: "POST",
+    body: JSON.stringify({
+      base_tree: baseTreeSha,
+      tree
+    })
   });
-  const text = await response.text();
+}
 
-  if (!response.ok) {
-    throw new Error(`GitHub delete failed for ${path}: ${response.status} ${text}`);
-  }
+async function githubCreateCommit(env, message, treeSha, parentSha) {
+  return githubRequest(env, "/git/commits", {
+    method: "POST",
+    body: JSON.stringify({
+      message,
+      tree: treeSha,
+      parents: [parentSha]
+    })
+  });
+}
 
-  return JSON.parse(text);
+async function githubUpdateBranch(env, commitSha) {
+  const { branch } = getGitHubConfig(env);
+  return githubRequest(env, `/git/refs/heads/${encodeURIComponent(branch)}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      sha: commitSha,
+      force: false
+    })
+  });
 }
 
 function rowsBounds(html) {
@@ -197,57 +197,95 @@ function updateDashboardMetrics(html, rows) {
   return updated;
 }
 
+async function parseRequestJson(request) {
+  try {
+    return await request.json();
+  } catch (error) {
+    throw new Error("Request body must be valid JSON.");
+  }
+}
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS
+  });
+}
+
 export async function onRequestPost({ request, env }) {
   try {
-    const data = await request.json();
+    const data = await parseRequestJson(request);
     const slugs = Array.from(new Set(Array.isArray(data.slugs) ? data.slugs.map(slug => String(slug).trim()).filter(Boolean) : []));
+
+    if (!Array.isArray(data.slugs)) {
+      return jsonResponse({ success: false, message: "slugs must be an array." }, 400);
+    }
 
     if (!slugs.length) {
       return jsonResponse({ success: false, message: "No prospect slugs were supplied." }, 400);
     }
 
-    slugs.forEach(assertSafeSlug);
+    const unsafeSlug = slugs.find(slug => !isSafeSlug(slug));
 
-    const dashboardPath = "index.html";
-    const dashboardFile = await githubGetFile(env, dashboardPath);
+    if (unsafeSlug) {
+      return jsonResponse({
+        success: false,
+        message: "Unsafe business slug rejected.",
+        error: `Invalid slug: ${unsafeSlug}`
+      }, 400);
+    }
+
+    const dashboardFile = await githubGetFile(env, "index.html");
     const rows = parseDashboardRows(dashboardFile.content);
     const slugSet = new Set(slugs);
     const keptRows = rows.filter(row => !slugSet.has(row.slug));
     const removedRows = rows.filter(row => slugSet.has(row.slug));
 
     if (!removedRows.length) {
-      return jsonResponse({ success: false, message: "No matching dashboard prospects were found." }, 404);
+      return jsonResponse({ success: false, message: "No matching dashboard prospects were found.", deleted: [] }, 404);
     }
 
-    const files = await githubListFiles(env);
-    const deletedFiles = [];
-
-    for (const slug of removedRows.map(row => row.slug)) {
-      const prefix = `businesses/${slug}/`;
-      const matchingFiles = files.filter(file => file.path.startsWith(prefix));
-
-      for (const file of matchingFiles) {
-        await githubDeleteFile(env, file.path, file.sha, `Delete business file ${file.path}`);
-        deletedFiles.push(file.path);
-      }
-    }
+    const branch = await githubGetBranch(env);
+    const files = await githubListFiles(env, branch.treeSha);
+    const removedSlugSet = new Set(removedRows.map(row => row.slug));
+    const filesToDelete = files.filter(file => {
+      const match = file.path.match(/^businesses\/([a-z0-9]+(?:-[a-z0-9]+)*)\//);
+      return match && removedSlugSet.has(match[1]);
+    });
 
     let updatedDashboard = replaceDashboardRows(dashboardFile.content, keptRows);
     updatedDashboard = updateDashboardMetrics(updatedDashboard, keptRows);
 
-    await githubPutFile(
+    const indexBlobSha = await githubCreateBlob(env, updatedDashboard);
+    const tree = [
+      {
+        path: "index.html",
+        mode: "100644",
+        type: "blob",
+        sha: indexBlobSha
+      },
+      ...filesToDelete.map(file => ({
+        path: file.path,
+        mode: "100644",
+        type: "blob",
+        sha: null
+      }))
+    ];
+
+    const newTree = await githubCreateTree(env, branch.treeSha, tree);
+    const commit = await githubCreateCommit(
       env,
-      dashboardPath,
-      updatedDashboard,
-      `Remove ${removedRows.length} prospect${removedRows.length === 1 ? "" : "s"} from dashboard`,
-      dashboardFile.sha
+      `Delete selected prospects: ${removedRows.map(row => row.slug).join(", ")}`,
+      newTree.sha,
+      branch.commitSha
     );
+    await githubUpdateBranch(env, commit.sha);
 
     return jsonResponse({
       success: true,
-      message: `Deleted ${removedRows.length} prospect${removedRows.length === 1 ? "" : "s"} and ${deletedFiles.length} business file${deletedFiles.length === 1 ? "" : "s"}. Cloudflare will redeploy shortly.`,
-      deletedSlugs: removedRows.map(row => row.slug),
-      deletedFiles
+      message: "Selected businesses deleted successfully. Cloudflare will redeploy shortly.",
+      deleted: removedRows.map(row => row.slug),
+      deletedFiles: filesToDelete.map(file => file.path)
     });
   } catch (error) {
     return jsonResponse({
@@ -256,4 +294,11 @@ export async function onRequestPost({ request, env }) {
       error: String(error && error.message ? error.message : error)
     }, 500);
   }
+}
+
+export async function onRequestGet() {
+  return jsonResponse({
+    success: false,
+    message: "Use POST with JSON: { \"slugs\": [\"business-slug\"] }"
+  }, 405);
 }

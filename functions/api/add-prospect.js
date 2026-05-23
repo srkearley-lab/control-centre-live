@@ -130,8 +130,8 @@ function inferCategory(description) {
   const text = String(description || "").toLowerCase();
 
   if (/(garden room|garden office|outbuilding|installer|construction|builder)/.test(text)) return "Garden Rooms";
+  if (/(sports recovery|mobility|active adult|runner|gym-goer|gym goer|personal trainer|fitness|gym|pilates|yoga|\bpt\b)/.test(text)) return "Fitness";
   if (/(coach|wellbeing|confidence|stress|therapy|therapist|counsellor|counselor|clinic|recovery)/.test(text)) return "Wellbeing";
-  if (/(personal trainer|fitness|gym|pilates|yoga)/.test(text)) return "Fitness";
   if (/(beauty|salon|treatment|facial|lashes|nails|aesthetic)/.test(text)) return "Beauty";
   if (/(cafe|coffee|restaurant|food|takeaway|bakery)/.test(text)) return "Cafe";
   if (/(barber|haircut|grooming shop)/.test(text)) return "Barber";
@@ -178,6 +178,7 @@ function dashboardRowForProspect({ businessName, slug, websiteUrl, description }
     websiteStatus: noWebsite ? "No dedicated website found" : "Website provided - review recommended",
     websiteScore: noWebsite ? null : 64,
     score: noWebsite ? null : 68,
+    seoScore: noWebsite ? null : 68,
     reason: `New prospect created from Add New Prospect. ${description}`,
     contactFound: "Needs manual check",
     emailDraft: "Drafted",
@@ -286,6 +287,7 @@ function getWebsiteTheme(category) {
       accent: "#f2b84b",
       soft: "#f8ead2",
       visual: "Cafe counter, warm light, fresh menu board",
+      image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1400&q=80",
       icon: "CF"
     },
     "Barber": {
@@ -298,6 +300,7 @@ function getWebsiteTheme(category) {
       accent: "#e0b15a",
       soft: "#efe4ce",
       visual: "Chair, mirror, tools, sharp appointment flow",
+      image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1400&q=80",
       icon: "BR"
     },
     "Dog Groomer": {
@@ -310,6 +313,7 @@ function getWebsiteTheme(category) {
       accent: "#8bd8c7",
       soft: "#dff5ef",
       visual: "Clean grooming space, towels, care details",
+      image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=1400&q=80",
       icon: "DG"
     },
     "Vehicle Services": {
@@ -322,6 +326,7 @@ function getWebsiteTheme(category) {
       accent: "#6ba6ff",
       soft: "#dbe8f7",
       visual: "Workshop bays, diagnostics, service clarity",
+      image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1400&q=80",
       icon: "VS"
     },
     "Garage": {
@@ -334,6 +339,7 @@ function getWebsiteTheme(category) {
       accent: "#6ba6ff",
       soft: "#dbe8f7",
       visual: "Workshop bays, diagnostics, service clarity",
+      image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1400&q=80",
       icon: "GR"
     },
     "Fitness": {
@@ -346,6 +352,7 @@ function getWebsiteTheme(category) {
       accent: "#63dbc9",
       soft: "#dcf7f3",
       visual: "Training space, progress plan, coaching rhythm",
+      image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1400&q=80",
       icon: "FT"
     },
     "Wellbeing": {
@@ -358,6 +365,7 @@ function getWebsiteTheme(category) {
       accent: "#63dbc9",
       soft: "#dcf7f3",
       visual: "Calm consultation, clear plan, steady support",
+      image: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=1400&q=80",
       icon: "WB"
     },
     "Beauty": {
@@ -370,6 +378,7 @@ function getWebsiteTheme(category) {
       accent: "#f0c9b8",
       soft: "#f8e7df",
       visual: "Treatment room, soft light, refined booking",
+      image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1400&q=80",
       icon: "BY"
     }
   };
@@ -384,6 +393,7 @@ function getWebsiteTheme(category) {
     accent: "#7bb7ff",
     soft: "#e8ecff",
     visual: "Premium service preview, local trust, simple enquiry",
+    image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80",
     icon: "LB"
   };
 }
@@ -553,6 +563,7 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       --brand-dark: ${theme.brandDark};
       --accent: ${theme.accent};
       --soft: ${theme.soft};
+      --hero-image: url("${theme.image}");
       --shadow: 0 24px 80px rgba(20, 30, 45, .14);
     }
     * { box-sizing: border-box; }
@@ -661,9 +672,13 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       border: 1px solid rgba(255,255,255,.25);
       border-radius: 34px;
       background:
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.34)),
+        var(--hero-image),
         linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.06)),
         radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 60%, transparent), transparent 30%),
         linear-gradient(135deg, color-mix(in srgb, var(--brand) 70%, #fff), var(--brand-dark));
+      background-size: cover;
+      background-position: center;
       padding: 22px;
       box-shadow: 0 30px 90px rgba(0,0,0,.32);
     }
@@ -694,9 +709,13 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       min-height: 170px;
       border-radius: 22px;
       background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.64)),
+        var(--hero-image),
         linear-gradient(135deg, color-mix(in srgb, var(--brand) 62%, transparent), transparent),
         repeating-linear-gradient(135deg, rgba(255,255,255,.22) 0 18px, rgba(255,255,255,.06) 18px 36px),
         linear-gradient(135deg, var(--soft), var(--accent));
+      background-size: cover;
+      background-position: center;
       display: flex;
       align-items: flex-end;
       padding: 20px;
@@ -783,9 +802,13 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       color: #fff;
       font-weight: 900;
       background:
+        linear-gradient(180deg, transparent 22%, rgba(0,0,0,.62)),
+        var(--hero-image),
         linear-gradient(145deg, color-mix(in srgb, var(--brand) 74%, transparent), transparent),
         radial-gradient(circle at 74% 18%, rgba(255,255,255,.46), transparent 26%),
         linear-gradient(135deg, var(--brand-dark), var(--brand));
+      background-size: cover;
+      background-position: center;
       box-shadow: inset 0 -70px 90px rgba(0,0,0,.2);
     }
     .tone-2 { background:
@@ -812,9 +835,13 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes }) {
       display: flex;
       align-items: flex-end;
       background:
+        linear-gradient(180deg, transparent 30%, rgba(0,0,0,.68)),
+        var(--hero-image),
         linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
         radial-gradient(circle at 30% 24%, color-mix(in srgb, var(--accent) 70%, transparent), transparent 32%),
         linear-gradient(135deg, color-mix(in srgb, var(--brand) 80%, #fff), var(--brand-dark));
+      background-size: cover;
+      background-position: center;
       box-shadow: 0 24px 70px rgba(0,0,0,.24);
       font-size: 22px;
       font-weight: 950;
@@ -989,10 +1016,38 @@ ${serviceCards}
       <div class="shell">
         <div class="section-head">
           <h2>Visual concept direction</h2>
-          <p>CSS-generated image panels keep the page fast, safe and self-contained while giving the demo a stronger agency-built feel.</p>
+          <p>Stock-style visuals and category-specific layout give the demo a stronger agency-built feel without using random copyrighted logos or scraped images.</p>
         </div>
         <div class="gallery-grid">
 ${galleryCards}
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Designed to make local customers more confident</h2>
+          <p>Every section is built around the questions a visitor is likely to ask before they call, enquire or compare another local option.</p>
+        </div>
+        <div class="grid">
+          <article class="reason-card"><h3>Clear service promise</h3><p class="muted">The page explains what ${safeName} helps with, who it is for, and why the offer is relevant locally.</p></article>
+          <article class="reason-card"><h3>Trust before contact</h3><p class="muted">Proof-style blocks, calm copy and simple next steps reduce uncertainty before a customer gets in touch.</p></article>
+          <article class="reason-card"><h3>Mobile-first enquiry path</h3><p class="muted">Buttons and contact prompts appear at natural decision points, so mobile visitors are not left hunting.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell panel">
+        <div class="section-head">
+          <h2>Questions this website answers quickly</h2>
+          <p>Short reassurance points help the page feel useful rather than just decorative.</p>
+        </div>
+        <div class="grid">
+          <article><h3>What can I ask about?</h3><p class="muted">Services, availability, suitability, pricing guidance and the best next step for the customer.</p></article>
+          <article><h3>Is this local to me?</h3><p class="muted">The structure keeps location and local intent visible, supporting both trust and search relevance.</p></article>
+          <article><h3>What happens next?</h3><p class="muted">The calls to action keep the next step low-friction: ask, book, request or review before committing.</p></article>
         </div>
       </div>
     </section>

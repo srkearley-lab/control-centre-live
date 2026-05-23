@@ -46,12 +46,14 @@
     .updated { color:#b8c4d7; font-size:13px; display:flex; align-items:center; gap:8px; white-space:nowrap; }
     .add-btn { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:10px; padding:0 16px; color:#fff; background:linear-gradient(135deg,var(--purple),#5147e8); box-shadow:0 16px 34px rgba(85,75,255,.28); font-weight:900; text-decoration:none; }
     .kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:18px; margin-bottom:20px; }
-    .kpi { position:relative; overflow:hidden; min-height:150px; border:1px solid var(--line); border-radius:16px; padding:20px; background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025)); box-shadow:var(--shadow); }
-    .kpi:before { content:""; position:absolute; inset:auto -20px -44px -20px; height:82px; opacity:.5; background:radial-gradient(ellipse at 30% 0%, var(--glow), transparent 65%); }
-    .kpi .icon { width:52px; height:52px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--glow),rgba(255,255,255,.18)); box-shadow:0 16px 36px color-mix(in srgb,var(--glow) 32%,transparent); font-weight:950; float:left; margin-right:14px; }
-    .kpi strong { display:block; font-size:34px; line-height:1; }
+    .kpi { position:relative; overflow:hidden; min-height:150px; border:1px solid rgba(148,163,184,.2); border-radius:16px; padding:20px; background:linear-gradient(180deg,rgba(16,24,40,.96),rgba(9,14,25,.92)); box-shadow:var(--shadow); }
+    .kpi:before { content:""; position:absolute; inset:auto -18px -58px auto; width:150px; height:120px; opacity:.38; background:radial-gradient(ellipse at 50% 45%, var(--glow), transparent 68%); pointer-events:none; }
+    .kpi:after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(3,7,18,.08),rgba(3,7,18,.42)); pointer-events:none; }
+    .kpi .icon, .kpi strong, .kpi span, .kpi p { position:relative; z-index:1; }
+    .kpi .icon { width:52px; height:52px; border-radius:14px; display:grid; place-items:center; background:linear-gradient(135deg,color-mix(in srgb,var(--glow) 70%,#fff),rgba(255,255,255,.12)); box-shadow:0 16px 36px color-mix(in srgb,var(--glow) 26%,transparent); font-weight:950; float:left; margin-right:14px; color:#06111f; }
+    .kpi strong { display:block; font-size:34px; line-height:1; color:#fff; text-shadow:0 1px 14px rgba(0,0,0,.34); }
     .kpi span { display:block; color:#fff; font-weight:860; margin-top:3px; }
-    .kpi p { clear:both; margin:18px 0 0; color:#aab6c9; font-size:13px; line-height:1.45; }
+    .kpi p { clear:both; margin:18px 0 0; color:#d3deed; font-size:13px; line-height:1.45; }
     .kpi.blue { --glow:var(--blue); } .kpi.amber { --glow:var(--amber); } .kpi.green { --glow:var(--green); } .kpi.purple { --glow:var(--purple); } .kpi.cyan { --glow:var(--cyan); }
     .panel { border:1px solid var(--line); border-radius:16px; background:rgba(13,20,34,.74); box-shadow:var(--shadow); backdrop-filter:blur(18px); overflow:hidden; }
     .panel.focused { box-shadow:0 0 0 2px rgba(77,163,255,.44), var(--shadow); }
@@ -66,7 +68,7 @@
     .selected-count { color:#b8c4d7; font-size:13px; font-weight:800; }
     .delete-selected { min-height:38px; border:1px solid rgba(255,92,115,.34); border-radius:10px; background:rgba(255,92,115,.12); color:#ffd7dd; padding:0 14px; font-weight:900; cursor:pointer; }
     .delete-selected:disabled { opacity:.45; cursor:not-allowed; }
-    .table-wrap { max-height:430px; overflow:auto; }
+    .table-wrap { max-height:520px; overflow:auto; }
     table { width:100%; min-width:1340px; border-collapse:collapse; }
     th, td { padding:14px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
     th { position:sticky; top:0; z-index:2; color:#c8d3e3; font-size:12px; letter-spacing:.02em; background:#111a2b; cursor:pointer; white-space:nowrap; }
@@ -74,6 +76,9 @@
     th.select-col { cursor:default; }
     input[type="checkbox"] { width:16px; height:16px; accent-color:var(--blue); cursor:pointer; }
     td { color:#d9e3f2; font-size:13px; }
+    tbody tr { transition:background .16s ease, box-shadow .16s ease; }
+    tbody tr:hover { background:rgba(77,163,255,.04); }
+    tbody tr.row-selected { background:rgba(77,163,255,.1); box-shadow:inset 3px 0 0 var(--blue); }
     .biz { display:flex; align-items:center; gap:12px; min-width:220px; }
     .avatar { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; overflow:hidden; background:linear-gradient(135deg,rgba(77,163,255,.22),rgba(48,211,132,.16)); color:#eaf4ff; border:1px solid rgba(255,255,255,.12); font-weight:950; box-shadow:0 10px 26px rgba(0,0,0,.22); }
     .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -93,7 +98,8 @@
     .neutral { color:#dbeafe; background:rgba(77,163,255,.14); border:1px solid rgba(77,163,255,.28); }
     .value { color:#fff; font-weight:950; }
     .actions { display:flex; gap:7px; flex-wrap:wrap; min-width:300px; }
-    .actions a { min-height:32px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:8px; padding:0 9px; font-size:12px; font-weight:900; color:#dfe9f8; background:rgba(255,255,255,.06); border:1px solid var(--line); }
+    .actions a { min-height:32px; display:inline-flex; align-items:center; justify-content:center; gap:5px; text-decoration:none; border-radius:8px; padding:0 9px; font-size:12px; font-weight:900; color:#dfe9f8; background:rgba(255,255,255,.06); border:1px solid var(--line); }
+    .actions a:after { content:">"; font-size:11px; opacity:.72; }
     .actions a.primary { background:linear-gradient(135deg,var(--blue),var(--purple)); color:#fff; border-color:transparent; }
     .lower { display:grid; grid-template-columns:1fr 1.1fr 1.3fr 1.1fr; gap:18px; margin-top:18px; }
     .card { min-height:210px; border:1px solid var(--line); border-radius:16px; padding:20px; background:rgba(13,20,34,.74); box-shadow:var(--shadow); }
@@ -145,7 +151,7 @@
         </div>
         <div class="top-actions">
           <span class="updated">Last updated: 23 May 2026, 07:12 GMT+1</span>
-          <a class="add-btn" href="/dashboard/add-prospect.html">Add New Prospect</a>
+          <a class="add-btn" href="/dashboard/add-prospect">Add New Prospect</a>
         </div>
       </header>
 
@@ -287,12 +293,14 @@
             "slug": "the-orchard-cafe-brentwood",
             "name": "The Orchard Cafe",
             "initials": "OC",
+            "websiteUrl": "",
             "category": "Cafe",
             "location": "114 Orchard Ave, Brentwood CM13 2DP",
             "priority": "High",
             "websiteStatus": "No dedicated website found",
-            "websiteScore": 58,
-            "score": 72,
+            "websiteScore": null,
+            "score": null,
+            "seoScore": null,
             "reason": "Dedicated website could turn local cafe searches into visits, takeaway calls and menu views.",
             "contactFound": "Phone only",
             "emailDraft": "Drafted",
@@ -377,12 +385,14 @@
           "slug": "essex-recovery-clinic",
           "name": "Essex Recovery Clinic",
           "initials": "ER",
+          "websiteUrl": "",
           "category": "Wellbeing",
           "location": "Essex",
           "priority": "High",
           "websiteStatus": "No dedicated website found",
-          "websiteScore": 52,
-          "score": 61,
+          "websiteScore": null,
+          "score": null,
+          "seoScore": null,
           "reason": "New prospect created from Add New Prospect. Local sports recovery and therapy clinic in Essex helping active adults reduce pain, improve mobility and recover from training.",
           "contactFound": "Needs manual check",
           "emailDraft": "Drafted",
@@ -395,12 +405,14 @@
           "slug": "brentwood-mobility-clinic",
           "name": "Brentwood Mobility Clinic",
           "initials": "BM",
+          "websiteUrl": "",
           "category": "Local Service",
           "location": "Brentwood",
           "priority": "High",
           "websiteStatus": "No dedicated website found",
-          "websiteScore": 52,
-          "score": 61,
+          "websiteScore": null,
+          "score": null,
+          "seoScore": null,
           "reason": "New prospect created from Add New Prospect. Local mobility and sports recovery clinic in Brentwood helping active adults improve movement, reduce stiffness and recover from training.",
           "contactFound": "Needs manual check",
           "emailDraft": "Drafted",
@@ -420,6 +432,7 @@
           "websiteStatus": "No dedicated website found",
           "websiteScore": null,
           "score": null,
+          "seoScore": null,
           "reason": "New prospect created from Add New Prospect. Local PT",
           "contactFound": "Needs manual check",
           "emailDraft": "Drafted",
@@ -459,8 +472,8 @@
       return !/(^|\s)(no dedicated website|no website|missing website|website not found)(\s|$)/.test(rawStatus);
     }
     function scoreCell(row, key) {
-      if (!hasRealWebsite(row)) return '<span class="score-na">No website</span>';
-      const value = Number(row[key]);
+      if (!hasRealWebsite(row)) return '<span class="score-na">N/A</span>';
+      const value = Number(row[key] ?? (key === "score" ? row.seoScore : null));
       if (!Number.isFinite(value)) return '<span class="score-na">N/A</span>';
       return '<div class="seo-score" style="--score:' + value + '"><span>' + value + '</span></div>';
     }
@@ -532,6 +545,18 @@
         '<a title="' + row.folderPath + '" href="' + base + '">Business Pack</a>' +
       '</div>';
     }
+    async function readJsonResponse(response) {
+      const text = await response.text();
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        return {
+          success: false,
+          message: text.slice(0, 260)
+        };
+      }
+    }
     function render() {
       const q = search.value.trim().toLowerCase();
       const p = priority.value;
@@ -550,7 +575,12 @@
         return String(av).localeCompare(String(bv), undefined, { numeric:true }) * sortDir;
       });
       visibleSlugs = filtered.map(row => row.slug);
-      tbody.innerHTML = filtered.map(row => '<tr class="' + (viewMode === "websites" || viewMode === "proposals" || viewMode === "outreach" ? "row-highlight" : "") + '">' +
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="15" class="muted">No prospects match this filter.</td></tr>';
+        updateSelectionState();
+        return;
+      }
+      tbody.innerHTML = filtered.map(row => '<tr class="' + (selectedSlugs.has(row.slug) ? "row-selected " : "") + (viewMode === "websites" || viewMode === "proposals" || viewMode === "outreach" ? "row-highlight" : "") + '">' +
         '<td class="select-col"><input class="row-check" type="checkbox" aria-label="Select ' + row.name + '" data-slug="' + row.slug + '"' + (selectedSlugs.has(row.slug) ? " checked" : "") + '></td>' +
         '<td><div class="biz">' + avatar(row) + '<div><strong>' + row.name + '</strong><small>' + row.slug + '</small></div></div></td>' +
         '<td>' + row.category + '</td>' +
@@ -675,20 +705,21 @@
       try {
         const response = await fetch("/api/delete-prospects", {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ slugs })
         });
-        const result = await response.json();
-        if (!response.ok || !result.success) throw new Error(result.message || "Delete failed.");
+        const result = await readJsonResponse(response);
+        if (!response.ok || !result.success) throw new Error(result.error || result.message || "Delete failed.");
         slugs.forEach(slug => {
           selectedSlugs.delete(slug);
           const index = rows.findIndex(row => row.slug === slug);
           if (index !== -1) rows.splice(index, 1);
         });
         render();
-        window.alert(result.message || "Selected prospects deleted. Cloudflare will redeploy shortly.");
+        window.alert(result.message || "Selected businesses deleted successfully. Cloudflare will redeploy shortly.");
       } catch (error) {
-        window.alert("Could not delete selected prospects: " + (error && error.message ? error.message : error));
+        const message = error && error.message ? error.message : String(error);
+        window.alert("Could not delete selected prospects: " + message);
         updateSelectionState();
       } finally {
         deleteSelected.textContent = "Delete selected";
