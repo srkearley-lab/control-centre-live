@@ -587,16 +587,16 @@ function getWebsiteTheme(category) {
       icon: "GR"
     },
     "Fitness": {
-      bg: "#f1fbfb",
+      bg: "#f5fbff",
       panel: "#ffffff",
-      ink: "#10242d",
-      muted: "#4f6970",
-      brand: "#0796a8",
-      brandDark: "#083046",
-      accent: "#63dbc9",
-      soft: "#dcf7f3",
-      visual: "Training space, progress plan, coaching rhythm",
-      image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1400&q=80",
+      ink: "#081827",
+      muted: "#587085",
+      brand: "#0ea5c6",
+      brandDark: "#061525",
+      accent: "#31e6d4",
+      soft: "#dff8fb",
+      visual: "Recovery room, mobility plan, performance-focused care",
+      image: "https://images.unsplash.com/photo-1571019613914-85f342c6a11e?auto=format&fit=crop&w=1800&q=82",
       icon: "FT"
     },
     "Wellbeing": {
@@ -832,9 +832,30 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
   const extractedServices = existingContext && existingContext.fetched
     ? inferServicesFromContext(description, existingContext.headings || [], existingContext.services || [])
     : [];
-  const finalServices = extractedServices.length >= 3
+  let finalServices = extractedServices.length >= 3
     ? extractedServices.slice(0, 6).map(item => [item, `A clearer website section can explain ${item.toLowerCase()} in plain language, then guide visitors toward the right enquiry step.`])
     : copy.services;
+  if (category === "Fitness" && finalServices.length < 6) {
+    finalServices = uniqueRawList([
+      ...finalServices.map(([title]) => title),
+      "Sports recovery",
+      "Mobility support",
+      "Soft tissue therapy",
+      "Movement assessment",
+      "Recovery planning",
+      "Active lifestyle support"
+    ], 6).map(title => {
+      const copyByTitle = {
+        "Sports recovery": "Support training-heavy bodies with recovery-led sessions that help reduce stiffness and keep movement feeling confident.",
+        "Mobility support": "Explain stretching, range-of-motion and movement support clearly for gym-goers, runners and active adults.",
+        "Soft tissue therapy": "Present hands-on recovery work in a calm, clinical way without overpromising results.",
+        "Movement assessment": "Give new visitors a clear first step for discussing tightness, discomfort or performance limitations.",
+        "Recovery planning": "Show how the clinic can help people build a practical plan around training, work and everyday movement.",
+        "Active lifestyle support": "Position the business for people who want to stay active, recover smarter and move with more confidence."
+      };
+      return [title, copyByTitle[title] || `A clearer website section can explain ${title.toLowerCase()} in plain language, then guide visitors toward the right enquiry step.`];
+    });
+  }
   const publicPrices = existingContext && existingContext.prices ? existingContext.prices : [];
   const contactDetails = existingContext && existingContext.contactDetails ? existingContext.contactDetails : {};
   const phoneText = contactDetails.phone || "Contact details can be added here once confirmed.";
@@ -866,9 +887,27 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
             <p>${escapeHtml(body)}</p>
           </article>`).join("");
   const reasonItems = copy.reasons.map(item => `<li>${escapeHtml(item)}</li>`).join("");
-  const galleryCards = copy.gallery.map((label, index) => `
+  const galleryItems = uniqueRawList([
+    ...copy.gallery,
+    category === "Fitness" ? "Therapy room" : "",
+    category === "Fitness" ? "Performance recovery" : "",
+    category === "Fitness" ? "Movement plan" : ""
+  ].filter(Boolean), 6);
+  const galleryCards = galleryItems.map((label, index) => `
           <article class="gallery-card gallery-${index + 1}" role="img" aria-label="${escapeHtml(label)} concept visual">
             <span>${escapeHtml(label)}</span>
+          </article>`).join("");
+  const processSteps = [
+    ["Enquire or book", `Make it obvious how ${businessName} wants people to start, whether that is a call, booking link or short enquiry.`],
+    ["Discuss the need", "Help visitors understand that the first conversation is about their training, stiffness, recovery or service goal."],
+    ["Build the plan", "Frame the service around a practical route forward rather than a generic list of options."],
+    ["Move with confidence", "Use the website to reinforce the outcome visitors care about: clearer next steps and more confidence before they enquire."]
+  ];
+  const processCards = processSteps.map(([title, body], index) => `
+          <article class="process-step">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <h3>${escapeHtml(title)}</h3>
+            <p>${escapeHtml(body)}</p>
           </article>`).join("");
   const pricingCards = buildPublicPricingHtml(publicPrices);
   const faqItems = [
@@ -915,17 +954,19 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     }
     a { color: inherit; }
     .shell {
-      width: min(1180px, calc(100% - 40px));
+      width: min(1280px, calc(100% - 48px));
       margin: 0 auto;
     }
     header {
       position: relative;
       overflow: hidden;
       background:
-        radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--accent) 48%, transparent), transparent 28%),
-        linear-gradient(135deg, var(--brand-dark), color-mix(in srgb, var(--brand) 72%, #111827));
+        linear-gradient(90deg, rgba(6,21,37,.96), rgba(6,21,37,.82) 42%, rgba(6,21,37,.28)),
+        radial-gradient(circle at 76% 18%, color-mix(in srgb, var(--accent) 54%, transparent), transparent 30%),
+        linear-gradient(135deg, var(--brand-dark), color-mix(in srgb, var(--brand) 72%, #0f172a));
       color: #fff;
-      padding: 28px 0 96px;
+      min-height: 92vh;
+      padding: 32px 0 128px;
     }
     header:after {
       content: "";
@@ -943,7 +984,7 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       justify-content: space-between;
       align-items: center;
       gap: 20px;
-      margin-bottom: 74px;
+      margin-bottom: 92px;
     }
     .brand {
       font-size: 20px;
@@ -958,34 +999,53 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
-      gap: 56px;
+      grid-template-columns: minmax(0, .95fr) minmax(430px, 1.05fr);
+      gap: 72px;
       align-items: center;
     }
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 22px;
       border: 1px solid rgba(255,255,255,.22);
       border-radius: 999px;
       padding: 8px 12px;
       background: rgba(255,255,255,.1);
       color: rgba(255,255,255,.88);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 850;
     }
     h1 {
-      margin: 0 0 18px;
-      font-size: clamp(46px, 7vw, 82px);
-      line-height: .94;
+      margin: 0 0 24px;
+      font-size: clamp(58px, 7.8vw, 108px);
+      line-height: .9;
       letter-spacing: 0;
     }
     .lead {
-      max-width: 680px;
-      margin: 0 0 28px;
+      max-width: 760px;
+      margin: 0 0 34px;
       color: rgba(255,255,255,.88);
-      font-size: 21px;
+      font-size: clamp(20px, 2vw, 27px);
+      line-height: 1.45;
+    }
+    .hero-proof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0 0 32px;
+    }
+    .hero-proof span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      border-radius: 999px;
+      padding: 8px 13px;
+      color: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.16);
+      font-size: 13px;
+      font-weight: 850;
     }
     .actions {
       display: flex;
@@ -994,39 +1054,39 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     }
     .button {
       display: inline-flex;
-      min-height: 48px;
+      min-height: 56px;
       align-items: center;
       justify-content: center;
       border-radius: 999px;
-      padding: 12px 20px;
+      padding: 14px 24px;
       text-decoration: none;
       font-weight: 900;
     }
     .primary { background: #fff; color: var(--brand-dark); box-shadow: 0 18px 50px rgba(0,0,0,.22); }
     .secondary { border: 1px solid rgba(255,255,255,.35); color: #fff; }
     .visual {
-      min-height: 450px;
+      min-height: 620px;
       border: 1px solid rgba(255,255,255,.25);
-      border-radius: 34px;
+      border-radius: 44px;
       background:
-        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.34)),
+        linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.5)),
         var(--hero-image),
-        linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.06)),
+        linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.03)),
         radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 60%, transparent), transparent 30%),
         linear-gradient(135deg, color-mix(in srgb, var(--brand) 70%, #fff), var(--brand-dark));
       background-size: cover;
       background-position: center;
-      padding: 22px;
-      box-shadow: 0 30px 90px rgba(0,0,0,.32);
+      padding: 30px;
+      box-shadow: 0 42px 120px rgba(0,0,0,.38);
     }
     .mock-browser {
       height: 100%;
-      min-height: 405px;
-      border-radius: 24px;
+      min-height: 560px;
+      border-radius: 34px;
       overflow: hidden;
-      background: rgba(255,255,255,.92);
+      background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(240,253,255,.9));
       color: var(--ink);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7), 0 30px 80px rgba(0,0,0,.22);
     }
     .mock-top {
       display: flex;
@@ -1038,13 +1098,13 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     }
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); opacity: .75; }
     .mock-body {
-      padding: 24px;
+      padding: 28px;
       display: grid;
-      gap: 18px;
+      gap: 22px;
     }
     .mock-photo {
-      min-height: 170px;
-      border-radius: 22px;
+      min-height: 310px;
+      border-radius: 30px;
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.64)),
         var(--hero-image),
@@ -1055,9 +1115,10 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       background-position: center;
       display: flex;
       align-items: flex-end;
-      padding: 20px;
+      padding: 28px;
       color: #fff;
-      font-weight: 900;
+      font-size: 24px;
+      font-weight: 950;
       box-shadow: inset 0 -80px 90px rgba(0,0,0,.22);
     }
     .mock-grid {
@@ -1066,10 +1127,10 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       gap: 12px;
     }
     .mock-tile {
-      min-height: 92px;
-      border-radius: 18px;
+      min-height: 138px;
+      border-radius: 24px;
       background: var(--soft);
-      padding: 16px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -1086,58 +1147,64 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       color: #fff;
       font-weight: 950;
     }
-    main { margin-top: -44px; }
+    main { margin-top: -68px; }
     section {
-      padding: 68px 0;
+      padding: 104px 0;
     }
+    main > section:nth-of-type(even) { background: #fff; }
+    main > section:nth-of-type(odd) { background: linear-gradient(180deg, var(--bg), #fff); }
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 28px;
-      padding: 38px;
+      border-radius: 34px;
+      padding: 48px;
       box-shadow: var(--shadow);
     }
     .trust-strip {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
+      gap: 20px;
+      position: relative;
+      z-index: 2;
     }
     .trust-item {
-      padding: 18px;
-      border-radius: 18px;
-      background: color-mix(in srgb, var(--soft) 78%, #fff);
+      padding: 28px;
+      border-radius: 26px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--soft) 72%, #fff), #fff);
       border: 1px solid var(--line);
     }
-    .trust-item strong { display: block; font-size: 18px; margin-bottom: 4px; }
+    .trust-item strong { display: block; font-size: 22px; margin-bottom: 8px; color: var(--brand-dark); }
     .section-head {
-      max-width: 760px;
-      margin-bottom: 28px;
+      max-width: 880px;
+      margin-bottom: 44px;
     }
     .section-head p {
       color: var(--muted);
-      font-size: 18px;
+      font-size: 21px;
+      line-height: 1.55;
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 20px;
+      gap: 28px;
     }
     .service-card, .reason-card {
-      background: #fff;
+      background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--soft) 32%, #fff));
       border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 18px 45px rgba(17,24,39,.07);
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 24px 70px rgba(17,24,39,.1);
     }
     .mini-visual {
-      min-height: 135px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      padding: 18px;
+      min-height: 245px;
+      border-radius: 28px;
+      margin: -8px -8px 26px;
+      padding: 24px;
       display: flex;
       align-items: flex-end;
       color: #fff;
-      font-weight: 900;
+      font-size: 22px;
+      font-weight: 950;
       background:
         linear-gradient(180deg, transparent 22%, rgba(0,0,0,.62)),
         var(--hero-image),
@@ -1156,19 +1223,22 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       radial-gradient(circle at 24% 20%, rgba(255,255,255,.46), transparent 28%),
       linear-gradient(135deg, var(--accent), var(--brand)); }
     .gallery {
-      background: var(--brand-dark);
+      background:
+        radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 34%),
+        linear-gradient(135deg, var(--brand-dark), #07111f);
       color: #fff;
+      padding: 118px 0;
     }
     .gallery .section-head p { color: rgba(255,255,255,.76); }
     .gallery-grid {
       display: grid;
-      grid-template-columns: 1.2fr .8fr .8fr;
-      gap: 18px;
+      grid-template-columns: 1.25fr .9fr .9fr;
+      gap: 24px;
     }
     .gallery-card {
-      min-height: 240px;
-      border-radius: 28px;
-      padding: 24px;
+      min-height: 360px;
+      border-radius: 34px;
+      padding: 30px;
       display: flex;
       align-items: flex-end;
       background:
@@ -1180,10 +1250,10 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       background-size: cover;
       background-position: center;
       box-shadow: 0 24px 70px rgba(0,0,0,.24);
-      font-size: 22px;
+      font-size: 28px;
       font-weight: 950;
     }
-    .gallery-1 { min-height: 330px; }
+    .gallery-1 { min-height: 520px; grid-row: span 2; }
     .gallery-2 {
       background:
         linear-gradient(180deg, transparent, rgba(0,0,0,.38)),
@@ -1197,15 +1267,16 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
         linear-gradient(135deg, var(--brand-dark), var(--brand));
     }
     h2 {
-      margin: 0 0 16px;
-      font-size: clamp(32px, 5vw, 52px);
+      margin: 0 0 18px;
+      font-size: clamp(42px, 5.2vw, 72px);
       line-height: 1.1;
     }
     h3 {
-      margin: 0 0 10px;
-      font-size: 20px;
+      margin: 0 0 12px;
+      font-size: 25px;
+      line-height: 1.18;
     }
-    p { margin: 0 0 14px; }
+    p { margin: 0 0 16px; font-size: 17px; }
     ul { margin: 0; padding-left: 22px; }
     li { margin: 9px 0; }
     .muted { color: var(--muted); }
@@ -1229,31 +1300,31 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     .price-grid, .contact-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
+      gap: 24px;
     }
     .price-card, .contact-card, .map-card {
-      background: #fff;
+      background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--soft) 28%, #fff));
       border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 18px 45px rgba(17,24,39,.07);
+      border-radius: 32px;
+      padding: 34px;
+      box-shadow: 0 24px 70px rgba(17,24,39,.1);
     }
     .price-card strong, .contact-card strong {
       display: block;
       color: var(--brand-dark);
-      font-size: 18px;
+      font-size: 22px;
       margin-bottom: 8px;
     }
     .location-layout {
       display: grid;
-      grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
-      gap: 24px;
+      grid-template-columns: minmax(0, .82fr) minmax(420px, 1.18fr);
+      gap: 34px;
       align-items: stretch;
     }
     .map-panel {
-      min-height: 330px;
+      min-height: 520px;
       border: 0;
-      border-radius: 24px;
+      border-radius: 34px;
       width: 100%;
       background:
         radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--accent) 72%, transparent), transparent 28%),
@@ -1272,20 +1343,46 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     }
     .cta {
       text-align: center;
-      padding: 82px 0;
+      padding: 122px 0;
     }
     .cta .panel {
       background:
         radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--accent) 50%, transparent), transparent 30%),
-        linear-gradient(135deg, var(--brand-dark), var(--brand));
+        linear-gradient(135deg, var(--brand-dark), color-mix(in srgb, var(--brand) 78%, #0f172a));
       color: #fff;
+      padding: 72px;
     }
     .cta p {
-      max-width: 720px;
+      max-width: 820px;
       margin-inline: auto;
       color: rgba(255,255,255,.82);
-      font-size: 18px;
+      font-size: 22px;
     }
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .process-step {
+      min-height: 280px;
+      border-radius: 30px;
+      padding: 30px;
+      background: linear-gradient(180deg, var(--brand-dark), color-mix(in srgb, var(--brand) 68%, #0f172a));
+      color: #fff;
+      box-shadow: 0 24px 70px rgba(17,24,39,.16);
+    }
+    .process-step span {
+      display: inline-grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--accent) 74%, #fff);
+      color: var(--brand-dark);
+      font-weight: 950;
+      margin-bottom: 28px;
+    }
+    .process-step p { color: rgba(255,255,255,.78); }
     .meta {
       margin-top: 20px;
       color: rgba(255,255,255,.74);
@@ -1300,14 +1397,18 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     }
     @media (max-width: 820px) {
       body { background: #fff; }
-      .hero, .grid, .trust-strip, .gallery-grid, .seo-layout, .price-grid, .contact-grid, .location-layout { grid-template-columns: 1fr; }
-      header { padding-bottom: 54px; }
+      .hero, .grid, .trust-strip, .gallery-grid, .seo-layout, .price-grid, .contact-grid, .location-layout, .process-grid { grid-template-columns: 1fr; }
+      header { min-height: auto; padding-bottom: 70px; }
       nav { margin-bottom: 44px; align-items: flex-start; flex-direction: column; }
       main { margin-top: 0; }
-      .shell { width: min(100% - 28px, 1120px); }
+      .shell { width: min(100% - 28px, 1280px); }
       .panel { padding: 24px; border-radius: 18px; }
-      h1 { font-size: 42px; }
-      .visual { min-height: 360px; }
+      h1 { font-size: 46px; }
+      h2 { font-size: 36px; }
+      .visual, .mock-browser { min-height: 430px; }
+      .mock-photo, .mini-visual { min-height: 220px; }
+      .gallery-1, .gallery-card, .map-panel { min-height: 320px; }
+      section { padding: 72px 0; }
     }
   </style>
 </head>
@@ -1323,6 +1424,7 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
           <div class="badge">${safeBadge} / ${safeCategory}</div>
           <h1>${safeHeadline}</h1>
           <p class="lead">${safeSubhead}</p>
+          <div class="hero-proof"><span>${safeLocalArea}</span><span>Mobile-first enquiry flow</span><span>Proposal-ready concept</span></div>
           <div class="actions">
             <a class="button primary" href="#contact">Request a review</a>
             <a class="button secondary" href="#services">View services</a>
@@ -1387,6 +1489,18 @@ ${pricingCards}
           <article class="reason-card"><h3>First impression</h3><p class="muted">A polished visual system helps the business feel established before the visitor reads the detail.</p></article>
           <article class="reason-card"><h3>Decision support</h3><p class="muted">Service cards, proof points and local messaging reduce uncertainty for new customers.</p></article>
           <article class="reason-card"><h3>Action path</h3><p class="muted">Calls to action are repeated at natural decision points without making the page feel pushy.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>A clearer route from interest to enquiry</h2>
+          <p>The page is structured like a commercial website: it explains the offer, reduces uncertainty and keeps the next action visible.</p>
+        </div>
+        <div class="process-grid">
+${processCards}
         </div>
       </div>
     </section>
