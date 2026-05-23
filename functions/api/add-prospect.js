@@ -176,10 +176,104 @@ function uniqueShortList(items, limit = 6) {
   return output;
 }
 
+function uniqueRawList(items, limit = 8) {
+  const seen = new Set();
+  const output = [];
+
+  for (const item of items) {
+    const clean = String(item || "").replace(/\s+/g, " ").trim().slice(0, 160);
+    const key = clean.toLowerCase();
+    if (!clean || seen.has(key)) continue;
+    seen.add(key);
+    output.push(clean);
+    if (output.length >= limit) break;
+  }
+
+  return output;
+}
+
 function extractAttribute(tag, name) {
   const pattern = new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i");
   const match = String(tag || "").match(pattern);
   return match ? match[1] : "";
+}
+
+function extractNearbyText(html, keywords, limit = 8) {
+  const blocks = Array.from(String(html || "").matchAll(/<(?:p|li|td|th|span|div|h[1-4])[^>]*>([\s\S]{0,700}?)<\/(?:p|li|td|th|span|div|h[1-4])>/gi))
+    .map(match => stripTags(match[1]))
+    .filter(text => text.length > 6 && keywords.test(text));
+
+  return uniqueShortList(blocks, limit);
+}
+
+function extractLinks(html, sourceUrl, keywords, limit = 4) {
+  const links = Array.from(String(html || "").matchAll(/<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi))
+    .map(match => {
+      try {
+        const href = new URL(match[1], sourceUrl).href;
+        const label = stripTags(match[2]) || href;
+        return { href, label };
+      } catch (error) {
+        return null;
+      }
+    })
+    .filter(link => link && keywords.test(`${link.href} ${link.label}`));
+
+  const seen = new Set();
+  const output = [];
+  for (const link of links) {
+    const key = link.href.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    output.push(link);
+    if (output.length >= limit) break;
+  }
+
+  return output;
+}
+
+function extractContactDetails(text) {
+  const emailMatch = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  const phoneMatches = Array.from(text.matchAll(/(?:\+44\s?|0)(?:\d[\s().-]?){9,12}\d/g)).map(match => match[0]);
+  const postcodeMatch = text.match(/[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}/i);
+  const address = postcodeMatch
+    ? String(text.slice(Math.max(0, postcodeMatch.index - 110), postcodeMatch.index + postcodeMatch[0].length)).replace(/\s+/g, " ").trim()
+    : "";
+  const hours = extractLikelyHours(text);
+
+  return {
+    email: emailMatch ? emailMatch[0] : "",
+    phone: uniqueRawList(phoneMatches, 1)[0] || "",
+    address,
+    hours
+  };
+}
+
+function extractLikelyHours(text) {
+  const hourLines = String(text || "")
+    .split(/[\n\r]|(?<=\.)\s+/)
+    .filter(line => /(mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday|open|opening)/i.test(line) && /\d/.test(line))
+    .map(line => line.replace(/\s+/g, " ").trim());
+
+  return uniqueRawList(hourLines, 4);
+}
+
+function extractPublicPrices(html) {
+  const priceBlocks = extractNearbyText(html, /£|\$|\bprice\b|\bfrom\b|\bper\b|\bmenu\b/i, 8)
+    .filter(text => /£|\$|\d+\s*(?:gbp|pounds|pp|per)/i.test(text) || /£\s?\d+/.test(text));
+
+  return uniqueShortList(priceBlocks, 6);
+}
+
+function inferServicesFromContext(description, headings, serviceBlocks) {
+  const serviceKeywords = /(service|treatment|menu|package|repair|diagnostic|mot|groom|cut|coffee|brunch|recovery|mobility|consult|booking|therapy|massage|coaching|facial|clinic)/i;
+  const fromSite = [...headings, ...serviceBlocks].filter(item => serviceKeywords.test(item));
+  const fromDescription = String(description || "")
+    .split(/[,.;]/)
+    .map(part => part.trim())
+    .filter(part => part.length > 12);
+
+  return uniqueShortList([...fromSite, ...fromDescription], 8);
 }
 
 function resolveSameDomainAsset(value, baseUrl) {
@@ -197,15 +291,27 @@ function resolveSameDomainAsset(value, baseUrl) {
 }
 
 function extractWebsiteContext(html, sourceUrl) {
+  const text = stripTags(html);
   const title = stripTags((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "");
   const descriptionTag = (html.match(/<meta[^>]+name=["']description["'][^>]*>/i) || [])[0] || "";
   const metaDescription = stripTags(extractAttribute(descriptionTag, "content"));
   const headingMatches = Array.from(html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)).map(match => match[1]);
   const headings = uniqueShortList(headingMatches, 8);
+  const serviceBlocks = extractNearbyText(html, /(service|treatment|menu|package|repair|diagnostic|mot|groom|cut|coffee|brunch|recovery|mobility|consult|booking|therapy|massage|coaching|facial|clinic)/i, 10);
+  const prices = extractPublicPrices(html);
+  const faqs = extractNearbyText(html, /\?|faq|how much|how long|do you|can i|what should/i, 6);
+  const trustSignals = extractNearbyText(html, /(review|rated|award|qualified|qualification|insured|years|established|member|accredited|certified)/i, 6);
+  const contactDetails = extractContactDetails(text);
+  const contactLinks = extractLinks(html, sourceUrl, /(contact|enquiry|enquire|get-in-touch)/i, 3);
+  const bookingLinks = extractLinks(html, sourceUrl, /(book|booking|appointment|reserve|order)/i, 3);
+  const menuLinks = extractLinks(html, sourceUrl, /(menu|treatments|services|prices|pricing|packages)/i, 3);
   const imageTags = Array.from(html.matchAll(/<img[^>]+>/gi)).map(match => match[0]);
   const imageCandidates = uniqueShortList(
-    imageTags.map(tag => resolveSameDomainAsset(extractAttribute(tag, "src") || extractAttribute(tag, "data-src"), sourceUrl)).filter(Boolean),
-    3
+    imageTags
+      .map(tag => resolveSameDomainAsset(extractAttribute(tag, "src") || extractAttribute(tag, "data-src") || extractAttribute(tag, "data-lazy-src"), sourceUrl))
+      .filter(Boolean)
+      .filter(src => !/(tracking|pixel|sprite|icon|logo|favicon|blank|placeholder)/i.test(src)),
+    6
   );
 
   return {
@@ -214,6 +320,14 @@ function extractWebsiteContext(html, sourceUrl) {
     title,
     metaDescription,
     headings,
+    services: uniqueShortList(serviceBlocks, 8),
+    prices,
+    faqs,
+    trustSignals,
+    contactDetails,
+    contactLinks,
+    bookingLinks,
+    menuLinks,
     imageCandidates,
     fetched: true
   };
@@ -648,6 +762,53 @@ function getWebsiteCopy(category, businessName, description) {
   return byCategory[category] || fallback;
 }
 
+function inferLocalArea(businessName, description, existingContext) {
+  const text = `${businessName} ${description} ${existingContext && existingContext.metaDescription ? existingContext.metaDescription : ""}`;
+  return inferLocation(businessName, text);
+}
+
+function contextLink(context, type) {
+  const links = type === "booking" ? context.bookingLinks : type === "menu" ? context.menuLinks : context.contactLinks;
+  return links && links[0] ? links[0].href : "";
+}
+
+function mapsQueryFor(businessName, location, context) {
+  const query = context && context.contactDetails && context.contactDetails.address
+    ? context.contactDetails.address
+    : `${businessName} ${location}`.trim();
+  return encodeURIComponent(query);
+}
+
+function buildPublicPricingHtml(prices) {
+  if (!prices || !prices.length) {
+    return `
+          <article class="price-card">
+            <strong>Pricing available on request</strong>
+            <p>Current service options can be confirmed directly with the team before booking or enquiring.</p>
+          </article>`;
+  }
+
+  return prices.map(item => `
+          <article class="price-card">
+            <strong>Publicly listed price</strong>
+            <p>${escapeHtml(item)}</p>
+          </article>`).join("");
+}
+
+function buildResearchFacts(context, description) {
+  const services = inferServicesFromContext(description, context.headings || [], context.services || []);
+  const facts = [
+    ...(services.length ? [`Services identified: ${services.slice(0, 4).join(", ")}`] : []),
+    ...(context.prices && context.prices.length ? ["Public service pricing found on the current website."] : ["No public service prices found in the available page content."]),
+    ...(context.contactDetails && context.contactDetails.phone ? [`Phone found: ${context.contactDetails.phone}`] : []),
+    ...(context.contactDetails && context.contactDetails.email ? [`Email found: ${context.contactDetails.email}`] : []),
+    ...(context.contactDetails && context.contactDetails.hours && context.contactDetails.hours.length ? ["Opening-hours text found."] : []),
+    ...(context.imageCandidates && context.imageCandidates.length ? ["Same-domain image candidates found and prioritised."] : ["No reliable same-domain images found; using stock-style/CSS visuals."])
+  ];
+
+  return uniqueShortList(facts, 8);
+}
+
 function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existingContext }) {
   const category = inferCategory(description);
   const theme = getWebsiteTheme(category);
@@ -666,28 +827,59 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
   const contextTitle = existingContext && existingContext.title ? existingContext.title : "";
   const contextDescription = existingContext && existingContext.metaDescription ? existingContext.metaDescription : "";
   const contextHeadings = existingContext && existingContext.headings && existingContext.headings.length ? existingContext.headings : [];
+  const localArea = inferLocalArea(businessName, description, existingContext || {});
+  const safeLocalArea = escapeHtml(localArea);
+  const extractedServices = existingContext && existingContext.fetched
+    ? inferServicesFromContext(description, existingContext.headings || [], existingContext.services || [])
+    : [];
+  const finalServices = extractedServices.length >= 3
+    ? extractedServices.slice(0, 6).map(item => [item, `A clearer website section can explain ${item.toLowerCase()} in plain language, then guide visitors toward the right enquiry step.`])
+    : copy.services;
+  const publicPrices = existingContext && existingContext.prices ? existingContext.prices : [];
+  const contactDetails = existingContext && existingContext.contactDetails ? existingContext.contactDetails : {};
+  const phoneText = contactDetails.phone || "Contact details can be added here once confirmed.";
+  const emailText = contactDetails.email || "Email can be added once confirmed.";
+  const addressText = contactDetails.address || (localArea !== "Local area" ? `Serving ${localArea} and the surrounding area.` : "Local service area to be confirmed.");
+  const hoursText = contactDetails.hours && contactDetails.hours.length ? contactDetails.hours.join(" / ") : "Opening hours can be added once confirmed.";
+  const bookingUrl = existingContext && existingContext.fetched ? (contextLink(existingContext, "booking") || contextLink(existingContext, "contact")) : "";
+  const mapQuery = mapsQueryFor(businessName, localArea, existingContext || {});
+  const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+  const imageSourceLabel = existingContext && existingContext.imageCandidates && existingContext.imageCandidates.length
+    ? "Same-domain business images with CSS fallbacks"
+    : "Safe stock-style imagery and CSS visual panels";
   const contextNote = existingContext && existingContext.fetched
     ? `Redesign context safely read from ${existingContext.domain}.`
     : (existingContext && existingContext.reason ? existingContext.reason : "No existing website context was available, so the concept uses the submitted brief.");
   const contextItems = [
     contextTitle ? `Existing site title: ${contextTitle}` : "",
     contextDescription ? `Meta description direction: ${contextDescription}` : "",
+    ...buildResearchFacts(existingContext || {}, description),
     ...contextHeadings.slice(0, 4).map(item => `Observed heading: ${item}`)
   ].filter(Boolean);
   const contextList = contextItems.length
     ? contextItems.map(item => `<li>${escapeHtml(item)}</li>`).join("")
     : `<li>${escapeHtml(contextNote)}</li>`;
-  const serviceCards = copy.services.map(([title, body], index) => `
+  const serviceCards = finalServices.map(([title, body], index) => `
           <article class="service-card">
-            <div class="mini-visual tone-${index + 1}"><span>${escapeHtml(title)}</span></div>
+            <div class="mini-visual tone-${(index % 3) + 1}" role="img" aria-label="${escapeHtml(title)} visual panel"><span>${escapeHtml(title)}</span></div>
             <h3>${escapeHtml(title)}</h3>
             <p>${escapeHtml(body)}</p>
           </article>`).join("");
   const reasonItems = copy.reasons.map(item => `<li>${escapeHtml(item)}</li>`).join("");
   const galleryCards = copy.gallery.map((label, index) => `
-          <article class="gallery-card gallery-${index + 1}">
+          <article class="gallery-card gallery-${index + 1}" role="img" aria-label="${escapeHtml(label)} concept visual">
             <span>${escapeHtml(label)}</span>
           </article>`).join("");
+  const pricingCards = buildPublicPricingHtml(publicPrices);
+  const faqItems = [
+    `What should a visitor understand first? ${businessName} should quickly explain who it helps, the core services available, and the simplest next step.`,
+    `What can be confirmed before launch? Services, contact details, opening hours, proof points and any public service prices should be checked with the business.`,
+    `What if imagery is limited? The page uses safe category visuals and CSS panels so the layout still looks complete without relying on scraped images.`
+  ];
+  const faqCards = faqItems.map(item => {
+    const [question, answer] = item.split("? ");
+    return `<article class="reason-card"><h3>${escapeHtml(question)}?</h3><p class="muted">${escapeHtml(answer || "")}</p></article>`;
+  }).join("");
 
   return `<!doctype html>
 <html lang="en">
@@ -1034,6 +1226,50 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
       padding: 28px;
       box-shadow: var(--shadow);
     }
+    .price-grid, .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .price-card, .contact-card, .map-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 18px 45px rgba(17,24,39,.07);
+    }
+    .price-card strong, .contact-card strong {
+      display: block;
+      color: var(--brand-dark);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .location-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+    .map-panel {
+      min-height: 330px;
+      border: 0;
+      border-radius: 24px;
+      width: 100%;
+      background:
+        radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--accent) 72%, transparent), transparent 28%),
+        linear-gradient(135deg, var(--soft), #fff);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .visual-note {
+      display: inline-flex;
+      margin-top: 14px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: color-mix(in srgb, var(--soft) 70%, #fff);
+      color: var(--brand-dark);
+      font-weight: 850;
+      font-size: 13px;
+    }
     .cta {
       text-align: center;
       padding: 82px 0;
@@ -1064,7 +1300,7 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     }
     @media (max-width: 820px) {
       body { background: #fff; }
-      .hero, .grid, .trust-strip, .gallery-grid, .seo-layout { grid-template-columns: 1fr; }
+      .hero, .grid, .trust-strip, .gallery-grid, .seo-layout, .price-grid, .contact-grid, .location-layout { grid-template-columns: 1fr; }
       header { padding-bottom: 54px; }
       nav { margin-bottom: 44px; align-items: flex-start; flex-direction: column; }
       main { margin-top: 0; }
@@ -1120,11 +1356,23 @@ function buildWebsiteHtml({ businessName, websiteUrl, description, notes, existi
     <section id="services">
       <div class="shell">
         <div class="section-head">
-          <h2>Services presented like a premium local brand</h2>
+          <h2>${safeName} services made easier to scan</h2>
           <p>${safeDescription}</p>
         </div>
         <div class="grid">
 ${serviceCards}
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Service options and pricing clarity</h2>
+          <p>${publicPrices.length ? "Publicly listed prices from the current website are surfaced carefully as reference information." : "No public service prices were found, so the demo avoids inventing prices and keeps the enquiry route clear."}</p>
+        </div>
+        <div class="price-grid">
+${pricingCards}
         </div>
       </div>
     </section>
@@ -1161,11 +1409,12 @@ ${serviceCards}
       <div class="shell">
         <div class="section-head">
           <h2>Visual concept direction</h2>
-          <p>Stock-style visuals and category-specific layout give the demo a stronger agency-built feel without using random copyrighted logos or scraped images.</p>
+          <p>${imageSourceLabel} give the demo a stronger agency-built feel without using random copyrighted logos, fake premises or unsupported claims.</p>
         </div>
         <div class="gallery-grid">
 ${galleryCards}
         </div>
+        <span class="visual-note">Image source: ${escapeHtml(imageSourceLabel)}</span>
       </div>
     </section>
 
@@ -1197,23 +1446,54 @@ ${galleryCards}
     </section>
 
     <section>
+      <div class="shell location-layout">
+        <div class="map-card">
+          <h2>Local area and directions</h2>
+          <p class="muted">${safeName} is positioned for ${safeLocalArea}. The live version can use confirmed address details, parking notes and local journey guidance once checked.</p>
+          <p><strong>Location signal:</strong> ${escapeHtml(addressText)}</p>
+          <div class="actions">
+            <a class="button primary" href="${directionsUrl}" target="_blank" rel="noopener">Get directions</a>
+            <a class="button secondary" href="#contact">Enquire first</a>
+          </div>
+        </div>
+        <iframe class="map-panel" title="${safeName} location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=-0.35%2C51.50%2C0.55%2C51.75&amp;layer=mapnik"></iframe>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Contact and opening details</h2>
+          <p>These details are included only when found or supplied. Missing details stay clearly marked for confirmation.</p>
+        </div>
+        <div class="contact-grid">
+          <article class="contact-card"><strong>Address / area</strong><p>${escapeHtml(addressText)}</p></article>
+          <article class="contact-card"><strong>Phone</strong><p>${escapeHtml(phoneText)}</p></article>
+          <article class="contact-card"><strong>Email</strong><p>${escapeHtml(emailText)}</p></article>
+          <article class="contact-card"><strong>Opening hours</strong><p>${escapeHtml(hoursText)}</p></article>
+        </div>
+        <div class="actions" style="margin-top:22px">
+          <a class="button primary" href="${bookingUrl ? escapeHtml(bookingUrl) : "#contact"}" ${bookingUrl ? 'target="_blank" rel="noopener"' : ""}>${bookingUrl ? "Open booking/contact page" : "Add contact details once confirmed"}</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <div class="shell panel">
         <div class="section-head">
           <h2>Questions this website answers quickly</h2>
           <p>Short reassurance points help the page feel useful rather than just decorative.</p>
         </div>
         <div class="grid">
-          <article><h3>What can I ask about?</h3><p class="muted">Services, availability, suitability, consultation guidance and the best next step for the customer.</p></article>
-          <article><h3>Is this local to me?</h3><p class="muted">The structure keeps location and local intent visible, supporting both trust and search relevance.</p></article>
-          <article><h3>What happens next?</h3><p class="muted">The calls to action keep the next step low-friction: ask, book, request or review before committing.</p></article>
+${faqCards}
         </div>
       </div>
     </section>
 
-    <section id="contact" class="cta">
+    <section class="cta">
       <div class="shell panel">
         <h2>Ready to turn the demo into a real sales conversation?</h2>
-        <p>This concept is designed to show what a more premium local website could look like, then support a manual review before any outreach is sent.</p>
+        <p>This concept shows a richer first impression, clearer services, better local visibility and a more confident enquiry path for ${safeName}.</p>
         <div class="actions" style="justify-content:center;margin-top:26px">
           <a class="button primary" href="#top">Review the concept</a>
           <a class="button secondary" href="#services">Review services</a>
@@ -1236,6 +1516,12 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes, exist
   const safeWebsite = escapeHtml(websiteUrl || "No website");
   const safeDescription = escapeHtml(description);
   const safeNotes = escapeHtml(publicNotes(notes));
+  const hasExistingSite = Boolean(existingContext && existingContext.fetched);
+  const hasPrices = Boolean(existingContext && existingContext.prices && existingContext.prices.length);
+  const hasContact = Boolean(existingContext && existingContext.contactDetails && (existingContext.contactDetails.phone || existingContext.contactDetails.email || existingContext.contactDetails.address));
+  const imageSource = existingContext && existingContext.imageCandidates && existingContext.imageCandidates.length
+    ? "safe same-domain image candidates from the current online presence, supported by CSS fallback panels"
+    : "category-specific stock-style imagery and premium CSS visual panels";
   const safeContext = escapeHtml(existingContext && existingContext.fetched
     ? `Existing website context reviewed from ${existingContext.domain}.`
     : (existingContext && existingContext.reason ? existingContext.reason : "No existing website context was available."));
@@ -1367,7 +1653,7 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes, exist
     <section>
       <h2>Executive summary</h2>
       <p>${safeName} has a clear opportunity to present its local offer with more authority, stronger visual direction, and a simpler enquiry journey.</p>
-      <p class="muted">The proposed direction is a premium, mobile-first website demo that helps visitors understand who the business helps, what the service experience feels like, and what to do next. ${safeContext}</p>
+      <p class="muted">${hasExistingSite ? "This concept is a redesign/improvement of the current online presence." : "This concept is a new website direction designed to give the business a stronger local online presence."} The proposed direction helps visitors understand who the business helps, what the service experience feels like, and what to do next. ${safeContext}</p>
     </section>
 
     <section>
@@ -1403,6 +1689,17 @@ function buildProposalHtml({ businessName, websiteUrl, description, notes, exist
         <li>Clear visual hierarchy so customers can scan the offer quickly on mobile and desktop.</li>
         <li>Visual sections that feel specific to the business category, not like placeholder content.</li>
         <li>Safer redesign handling when an existing website is supplied, using limited context rather than copying content.</li>
+        <li>Local area, directions, contact and opening-hours sections that use confirmed public details where available.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Research used</h2>
+      <ul>
+        <li>${hasExistingSite ? "Existing website was reviewed and used as redesign context." : "No usable existing website was available, so the concept uses the submitted business brief."}</li>
+        <li>${hasPrices ? "Public business service prices were found and can be labelled clearly in the website demo." : "No public business service prices were found, so the demo does not invent any."}</li>
+        <li>${hasContact ? "Public contact/location details were found and can be reflected after confirmation." : "No complete public contact/location details were found, so placeholders remain clearly marked for confirmation."}</li>
+        <li>Visual source: ${escapeHtml(imageSource)}.</li>
       </ul>
     </section>
 
