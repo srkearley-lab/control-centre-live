@@ -54,12 +54,12 @@
   <div><span>Stay style</span><strong>Family & friends</strong></div>
 </section>
 
-<section class="booking-bar reveal" aria-label="Static availability enquiry">
-  <label>Arrival <input type="text" value="Select dates" readonly></label>
-  <label>Departure <input type="text" value="Select dates" readonly></label>
-  <label>Guests <input type="text" value="2–6 guests" readonly></label>
-  <a class="button button-dark" href="contact.html">Check Availability</a>
-</section>
+<form class="booking-bar reveal" aria-label="Availability enquiry" data-booking-form>
+  <label><span>Arrival</span><input type="date" name="arrival"></label>
+  <label><span>Departure</span><input type="date" name="departure"></label>
+  <label><span>Guests</span><select name="guests"><option>2 guests</option><option>3 guests</option><option>4 guests</option><option>5 guests</option><option>6 guests</option></select></label>
+  <button class="button button-dark" type="submit">Start Enquiry</button>
+</form>
 
 <section class="editorial-intro reveal">
   <div>
@@ -78,26 +78,22 @@
   </div>
 </section>
 
-<section class="section-heading reveal">
-  <p class="eyebrow">The stay</p>
-  <h2>Stay, swim, dine and explore.</h2>
-</section>
-<section class="lifestyle-grid">
-  <article class="lifestyle-card reveal">
+<section class="stay-panels">
+  <article class="stay-panel reveal">
     <figure><img src="assets/images/living-dining.jpg" alt="Living and dining area" loading="lazy"></figure>
-    <div><span>01</span><h3>Stay</h3><p>Elegant interiors for easy mornings and cool afternoons.</p></div>
+    <div><span>01</span><p class="eyebrow">Stay</p><h2>Quiet interiors between long island days.</h2><p>Cool, comfortable living space gives the villa a calm rhythm beyond the pool.</p></div>
   </article>
-  <article class="lifestyle-card reveal">
+  <article class="stay-panel reverse reveal">
     <figure><img src="assets/images/pool-lounger-view.jpg" alt="Pool lounger view" loading="lazy"></figure>
-    <div><span>02</span><h3>Swim</h3><p>Pool days with a private terrace and space to unwind.</p></div>
+    <div><span>02</span><p class="eyebrow">Swim</p><h2>Pool days with proper privacy.</h2><p>The terrace becomes the centre of the stay — morning swims, shaded afternoons and relaxed evenings.</p></div>
   </article>
-  <article class="lifestyle-card reveal">
+  <article class="stay-panel reveal">
     <figure><img src="assets/images/outdoor-dining.jpg" alt="Outdoor dining terrace" loading="lazy"></figure>
-    <div><span>03</span><h3>Dine</h3><p>Long lunches and evening meals outside.</p></div>
+    <div><span>03</span><p class="eyebrow">Dine</p><h2>Open-air meals that feel like the holiday.</h2><p>Al fresco dining is treated as a main villa experience, not a small amenity.</p></div>
   </article>
-  <article class="lifestyle-card reveal">
+  <article class="stay-panel reverse reveal">
     <figure><img src="assets/images/terrace.jpg" alt="Villa terrace in Kassiopi" loading="lazy"></figure>
-    <div><span>04</span><h3>Explore</h3><p>Kassiopi, coves, harbour evenings and north-east Corfu.</p></div>
+    <div><span>04</span><p class="eyebrow">Explore</p><h2>Kassiopi close by, villa calm when you return.</h2><p>Harbour evenings, coast roads and local dining give the stay a real Corfu setting.</p></div>
   </article>
 </section>
 

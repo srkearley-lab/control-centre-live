@@ -465,3 +465,81 @@ figcaption { position: absolute; left: 18px; bottom: 18px; padding: 8px 14px; bo
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1 !important; transform: none !important; }
 }
+
+/* Premium refinement pass: fewer beige gaps, stronger editorial panels, real enquiry UI */
+body { background: #e9dcc7; }
+.hero-overlay { background: linear-gradient(90deg, rgba(7,9,6,.88), rgba(7,9,6,.32) 56%, rgba(7,9,6,.12)), linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,.66)); }
+.hero-inner { padding-bottom: 104px; }
+.booking-bar { margin-top: 0; border-radius: 0 0 30px 30px; width: min(1180px, calc(100% - 64px)); transform: translateY(-28px); }
+.booking-bar label span, .enquiry-form label span { color: #6d604f; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.booking-bar input, .booking-bar select, .enquiry-form input, .enquiry-form select, .enquiry-form textarea { border-color: rgba(52,38,20,.12); background: #fffaf1; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); font-weight: 400; }
+.booking-bar .button { width: 100%; border-radius: 16px; }
+.editorial-intro { padding-top: 76px; }
+.feature-bleed { margin-top: 10px; border-radius: 0; width: 100%; grid-template-columns: 1.4fr .6fr; }
+.feature-bleed figure { min-height: 820px; }
+.feature-card { padding-right: max(54px, calc((100vw - 1320px) / 2)); }
+.stay-panels { width: 100%; margin: 0 auto 120px; }
+.stay-panel { display: grid; grid-template-columns: 58% 42%; min-height: 720px; background: #11150f; color: white; }
+.stay-panel.reverse { grid-template-columns: 42% 58%; }
+.stay-panel.reverse figure { order: 2; }
+.stay-panel figure { min-height: 720px; }
+.stay-panel div { padding: 76px max(48px, calc((100vw - 1320px) / 2)) 76px 64px; align-self: end; }
+.stay-panel.reverse div { padding-left: max(48px, calc((100vw - 1320px) / 2)); padding-right: 64px; }
+.stay-panel h2, .stay-panel p { color: white; }
+.stay-panel span, .destination-guide span { color: var(--color-gold); font-family: var(--font-serif); font-size: 70px; line-height: 1; }
+.gallery-preview { margin-top: 120px; }
+.preview-grid { grid-template-columns: 1.35fr .85fr .85fr; }
+.preview-grid figure { border-radius: 0; }
+.preview-grid figure:first-child { min-height: 760px; }
+.preview-panels { grid-template-columns: 1fr; gap: 0; width: 100%; margin-bottom: 0; }
+.preview-panel { min-height: 260px; border-radius: 0; padding-left: max(34px, calc((100vw - 1320px) / 2)); padding-right: max(34px, calc((100vw - 1320px) / 2)); border-bottom: 1px solid rgba(255,255,255,.12); }
+.gallery-page { width: min(1600px, calc(100% - 28px)); }
+.gallery-filter { margin-top: 48px; justify-content: center; }
+.gallery-filter span { background: #171b13; color: #fff; border-color: rgba(255,255,255,.12); }
+.gallery-masonry { gap: 14px; }
+.gallery-tile { border-radius: 0; min-height: 520px; }
+.gallery-tile.wide { min-height: 720px; }
+.gallery-tile.tall { min-height: 720px; }
+.service-note { margin-bottom: 40px; }
+.concierge-panels { width: 100%; margin-bottom: 0; }
+.concierge-panels .service-row { width: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: #11150f; color: white; grid-template-columns: 56% 44%; }
+.concierge-panels .service-row:nth-child(even) { background: #efe4d1; color: var(--color-dark); }
+.concierge-panels .service-row:nth-child(even) figure { order: 2; }
+.concierge-panels .service-row figure { height: 660px; border-radius: 0; }
+.concierge-panels .service-row div { padding: 70px max(44px, calc((100vw - 1320px) / 2)) 70px 64px; align-self: center; }
+.concierge-panels .service-row:nth-child(even) div { padding-left: max(44px, calc((100vw - 1320px) / 2)); padding-right: 64px; }
+.concierge-panels .service-row h2, .concierge-panels .service-row p { color: inherit; }
+.concierge-panels .text-link { display: inline-block; margin-top: 20px; }
+.destination-feature { width: 100%; margin: 0; grid-template-columns: 58% 42%; background: #11150f; color: white; }
+.destination-feature.reverse { grid-template-columns: 42% 58%; background: #efe4d1; color: var(--color-dark); }
+.destination-feature.reverse figure { order: 2; }
+.destination-feature figure { min-height: 720px; border-radius: 0; box-shadow: none; }
+.destination-feature div { padding: 76px max(48px, calc((100vw - 1320px) / 2)) 76px 64px; }
+.destination-feature.reverse div { padding-left: max(48px, calc((100vw - 1320px) / 2)); padding-right: 64px; }
+.destination-feature h2, .destination-feature p { color: inherit; }
+.destination-guide { margin-top: 100px; }
+.destination-guide article { background: #151911; color: white; border: 0; border-radius: 0; min-height: 340px; display: flex; flex-direction: column; justify-content: flex-end; }
+.destination-guide article p, .destination-guide article h3 { color: white; }
+.map-block { margin-top: 80px; }
+.map-frame { border-radius: 0; outline: 0; }
+.map-frame iframe { height: 700px; }
+.concierge-enquiry { align-items: stretch; }
+.contact-aside { border-radius: 0; padding: 58px; background: #11150f; }
+.next-box { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+.enquiry-form { border-radius: 0; padding: 58px; box-shadow: 0 30px 90px rgba(20,23,17,.12); }
+.enquiry-form label { gap: 10px; font-weight: 500; }
+.enquiry-form .button { justify-self: start; min-width: 220px; }
+.final-cta { border-radius: 0; width: 100%; margin-bottom: 0; padding-left: max(34px, calc((100vw - 1320px) / 2)); padding-right: max(34px, calc((100vw - 1320px) / 2)); }
+@media (max-width: 1000px) {
+  .stay-panel, .stay-panel.reverse, .concierge-panels .service-row, .destination-feature, .destination-feature.reverse { grid-template-columns: 1fr; }
+  .stay-panel.reverse figure, .concierge-panels .service-row:nth-child(even) figure, .destination-feature.reverse figure { order: 0; }
+  .stay-panel div, .stay-panel.reverse div, .concierge-panels .service-row div, .concierge-panels .service-row:nth-child(even) div, .destination-feature div, .destination-feature.reverse div { padding: 44px var(--container); }
+}
+@media (max-width: 640px) {
+  .booking-bar { transform: none; width: var(--container); border-radius: 24px; }
+  .feature-bleed { grid-template-columns: 1fr; }
+  .feature-bleed figure, .stay-panel figure, .concierge-panels .service-row figure, .destination-feature figure { min-height: 420px; height: 420px; }
+  .gallery-tile, .gallery-tile.wide, .gallery-tile.tall { min-height: 430px; }
+  .map-frame iframe { height: 480px; }
+  .contact-aside, .enquiry-form { padding: 32px; }
+}
