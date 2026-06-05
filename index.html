@@ -227,6 +227,9 @@
           <div class="quick"><a href="/businesses/the-orchard-cafe-brentwood/website.html">Review first website</a><span>Open</span></div>
           <div class="quick"><a href="/businesses/the-orchard-cafe-brentwood/proposal.html">Review first proposal</a><span>Open</span></div>
           <div class="quick"><a href="/businesses/the-orchard-cafe-brentwood/outreach-email.html">Review first email</a><span>Open</span></div>
+          <div class="quick"><a href="/businesses/villa-leveque/">Villa Leveque website</a><span>Open</span></div>
+          <div class="quick"><a href="/businesses/villa-leveque/proposal.html">Villa Leveque proposal</a><span>Open</span></div>
+          <div class="quick"><a href="/businesses/villa-leveque/email-draft.html">Villa Leveque email draft</a><span>Open</span></div>
           <div class="quick"><a href="/businesses/">Open businesses folder</a><span>Open</span></div>
         </article>
       </section>
@@ -300,13 +303,15 @@
             "websiteScore": 90,
             "score": 85,
             "reason": "Premium image-led villa rental website ready to support high-value Corfu booking enquiries.",
-            "contactFound": "Needs manual check",
-            "emailDraft": "Not required",
+            "contactFound": "Website enquiry",
+            "emailDraft": "Ready",
             "websiteReady": "Ready",
             "status": "Ready for review",
-            "nextAction": "Review the luxury villa website and connect enquiry handling.",
+            "nextAction": "Review Villa Leveque website",
             "folderPath": "/businesses/villa-leveque/",
-            "websiteUrl": "/businesses/villa-leveque/"
+            "websiteUrl": "/businesses/villa-leveque/",
+            "proposalUrl": "/businesses/villa-leveque/proposal.html",
+            "emailDraftUrl": "/businesses/villa-leveque/email-draft.html"
       },
           {
                     "slug": "de-milia-barber-brentwood",
@@ -477,23 +482,15 @@
     }
     function actions(row) {
       const base = "/businesses/" + row.slug + "/";
+      const websiteUrl = row.websiteUrl || (base + "website.html");
+      const proposalUrl = row.proposalUrl || (base + "proposal.html");
+      const emailDraftUrl = row.emailDraftUrl || row.outreachUrl || (base + "outreach-email.html");
+      const folderUrl = row.folderPath && String(row.folderPath).startsWith("/") ? row.folderPath : base;
       return '<div class="actions">' +
-        '<a class="primary" href="' + base + 'website.html">View Website</a>' +
-        '<a href="' + base + 'proposal.html">Proposal</a>' +
-        '<a href="' + base + 'outreach-email.html">Email Draft</a>' +
+        '<a class="primary" href="' + websiteUrl + '">View Website</a>' +
+        '<a href="' + proposalUrl + '">Proposal</a>' +
+        '<a href="' + emailDraftUrl + '">Email Draft</a>' +
       '</div>';
-    }
-    async function readJsonResponse(response) {
-      const text = await response.text();
-      if (!text) return {};
-      try {
-        return JSON.parse(text);
-      } catch (error) {
-        return {
-          success: false,
-          message: text.slice(0, 260)
-        };
-      }
     }
     function render() {
       const q = search.value.trim().toLowerCase();
