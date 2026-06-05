@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Website Brief | The Orchard Cafe</title>
+  <style>
+    :root { --dark:#223127; --accent:#d98f45; --paper:#ffffff; --soft:#f7f1e6; --ink:#17202a; --muted:#637083; --line:#dfe6ee; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, Arial, sans-serif; background:linear-gradient(180deg,var(--soft),#fff 42%); color:var(--ink); line-height:1.55; }
+    a { color:inherit; }
+    .wrap { max-width:1120px; margin:0 auto; padding:0 22px; }
+    header { background:radial-gradient(circle at 75% 10%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 32%), linear-gradient(135deg,var(--dark),#263645); color:#fff; padding:34px 0 30px; }
+    .top { display:flex; justify-content:space-between; gap:16px; align-items:center; flex-wrap:wrap; }
+    .crumb { color:#dbe6ef; text-decoration:none; font-size:14px; }
+    .badge { display:inline-flex; align-items:center; border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:7px 12px; color:#fff; background:rgba(255,255,255,.1); font-size:13px; }
+    h1 { margin:26px 0 10px; font-size:clamp(34px,6vw,64px); line-height:1; letter-spacing:0; }
+    .lede { max-width:780px; color:#dbe6ef; font-size:18px; margin:0; }
+    main { padding:28px 0 54px; }
+    .grid { display:grid; grid-template-columns:1.1fr .9fr; gap:22px; align-items:start; }
+    .card, .panel { background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:8px; box-shadow:0 18px 45px rgba(15,23,42,.07); padding:22px; }
+    .panel { box-shadow:none; }
+    h2 { margin:0 0 14px; font-size:24px; color:#111827; }
+    h3 { margin:18px 0 8px; font-size:18px; }
+    p { margin:0 0 12px; }
+    ul { margin:0; padding-left:20px; }
+    li { margin:7px 0; }
+    .meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:18px; }
+    .metric { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfdff; }
+    .metric strong { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
+    .score { font-size:34px; font-weight:800; color:var(--dark); }
+    .pill { display:inline-flex; border-radius:999px; padding:6px 10px; background:color-mix(in srgb,var(--accent) 17%,#fff); color:var(--dark); font-weight:800; font-size:12px; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+    .btn { display:inline-flex; text-decoration:none; border:1px solid var(--line); border-radius:8px; padding:10px 13px; background:#fff; font-weight:800; color:#17202a; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--dark); }
+    table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:8px; }
+    th, td { text-align:left; border-bottom:1px solid var(--line); padding:12px; vertical-align:top; }
+    th { background:#f8fafc; color:#445064; font-size:13px; }
+    .note { border-left:4px solid var(--accent); padding:12px 14px; background:#fffaf0; border-radius:0 8px 8px 0; }
+    @media (max-width:820px) { .grid,.meta { grid-template-columns:1fr; } header { padding-top:24px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <a class="crumb" href="../../dashboard/index.html">Back to dashboard</a>
+        <span class="badge">Premium homepage proposal</span>
+      </div>
+      <h1>Demo Website Brief</h1>
+      <p class="lede">A dedicated cafe homepage could capture local searches, opening hours, menus, breakfast enquiries, and phone calls.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="grid">
+      <article class="card">
+        <h2>Brief</h2>
+        <p>Build a self-contained premium homepage concept for The Orchard Cafe that feels credible enough to show to a local business owner as a &pound;1,000 website proposal.</p>
+        <h3>Design Direction</h3>
+        <p>warm, fresh, local, bright, appetising, easy to scan.</p>
+        <h3>Audience</h3>
+        <p>Brentwood locals looking for breakfast, lunch, coffee, takeaway, opening hours, and a welcoming neighbourhood cafe.</p>
+        <h3>Required Homepage Sections</h3>
+        <ul>
+          <li>Premium hero with local positioning and clear CTA.</li>
+          <li>Services, example pricing, why choose us, trust signals, testimonials marked as placeholders, and contact CTA.</li>
+          <li>Local SEO wording for Brentwood/Shenfield searches.</li>
+          <li>Responsive, self-contained HTML and CSS.</li>
+        </ul>
+      </article>
+      <aside class="panel">
+        <h2>Acceptance Criteria</h2>
+        <ul>
+          <li>Looks polished and commercial.</li>
+          <li>Does not look like a wireframe.</li>
+          <li>Includes pricing with the confirmation disclaimer.</li>
+          <li>Uses premium CSS visual panels if no AI images are available.</li>
+          <li>Demo homepage is over 15,000 bytes.</li>
+        </ul>
+      </aside>
+    </section>
+    <div class="actions"><a class="btn primary" href="demo-homepage.html">View final concept</a><a class="btn" href="status.html">Status</a></div></main>
+</body>
+</html>

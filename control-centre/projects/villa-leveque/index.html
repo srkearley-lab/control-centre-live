@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Villa Leveque | Control Centre</title>
+  <style>
+    :root{--bg:#fbf7ef;--panel:#fffdf8;--ink:#1e1c19;--muted:#746b60;--line:#e8ddcf;--gold:#b88945;--blue:#2c6f86;--green:#2f7d58;--red:#a64242;--shadow:0 24px 70px rgba(54,39,20,.12)}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:radial-gradient(circle at 85% -5%,rgba(184,137,69,.22),transparent 32%),linear-gradient(180deg,#fffaf2,var(--bg));color:var(--ink)}
+    a{color:inherit}.wrap{width:min(1280px,calc(100% - 40px));margin:0 auto;padding:34px 0 70px}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:stretch;margin-bottom:26px}.hero-card,.panel{background:rgba(255,253,248,.88);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow)}.hero-card{padding:42px}.eyebrow{letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-size:12px;font-weight:900}h1{font-family:Georgia,serif;font-size:clamp(44px,7vw,88px);line-height:.92;margin:12px 0}.lead{font-size:19px;line-height:1.65;color:var(--muted);max-width:760px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}.btn{border:0;border-radius:999px;padding:13px 18px;text-decoration:none;font-weight:900;background:var(--ink);color:#fff;cursor:pointer}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--ink)}.btn.gold{background:var(--gold)}.status-card{padding:28px;display:grid;gap:14px}.pill{display:inline-flex;width:max-content;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;background:#f2eadf;color:#5d4630}.pill.warn{background:#fff1d6;color:#8a5a11}.pill.ok{background:#e2f3e9;color:#225c3e}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:20px 0}.field{padding:18px;border:1px solid var(--line);border-radius:18px;background:#fff}.field small{display:block;color:var(--muted);font-weight:800;margin-bottom:7px}.field strong{display:block;word-break:break-word}.panel{padding:24px;margin-top:22px}h2{margin:0 0 14px;font-size:26px}.commands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cmd{padding:16px;border:1px solid var(--line);border-radius:16px;background:#fff;text-align:left;cursor:pointer}.cmd b{display:block}.cmd code{display:block;margin-top:8px;color:var(--blue);font-size:12px;white-space:pre-wrap}.log{min-height:250px;background:#171512;color:#f7ead8;border-radius:18px;padding:18px;white-space:pre-wrap;overflow:auto;border:1px solid #342d24}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.list{display:grid;gap:10px}.item{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff}.warntext{color:#8a5a11}.oktext{color:var(--green)}.badtext{color:var(--red)}footer{margin-top:28px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}@media(max-width:900px){.hero,.two,.grid,.commands{grid-template-columns:1fr}.wrap{width:min(100% - 28px,1280px)}.hero-card{padding:28px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <p><a href="../../dashboard/index.html">← Back to Control Centre</a></p>
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">Premium Greek villa rental website</div>
+        <h1>Villa Leveque</h1>
+        <p class="lead">Source-of-truth project entry for building, managing, committing, pushing, and deploying the Villa Leveque website for luxury private villa enquiries in Kassiopi, Corfu.</p>
+        <div class="actions">
+          <a class="btn" href="#commands">Run Workflow Commands</a>
+          <a class="btn secondary" href="website-brief.md">Website Brief</a>
+          <a class="btn secondary" href="workflow.md">Workflow Notes</a>
+        </div>
+      </div>
+      <aside class="status-card hero-card">
+        <span class="pill warn">Deployment: Needs configuration</span>
+        <span class="pill warn">Cloudflare: Needs configuration</span>
+        <span class="pill warn">Website folder: Needs configuration</span>
+        <span class="pill ok">Control Centre entry: Added</span>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <h2>Project metadata</h2>
+      <div class="grid" id="metadata"></div>
+    </section>
+
+    <section class="panel two">
+      <div>
+        <h2>GitHub workflow</h2>
+        <div class="list">
+          <div class="item">Detect remote, owner, repo, current branch, last commit.</div>
+          <div class="item">Check modified files and ahead/behind state.</div>
+          <div class="item">Stage, commit with message, and push active branch once a real project repo is configured.</div>
+          <div class="item warntext">Current root repo has no origin remote detected, so push is blocked until configured.</div>
+        </div>
+      </div>
+      <div>
+        <h2>Cloudflare workflow</h2>
+        <div class="list">
+          <div class="item">Stores provider, account, Pages project, domain, production URL, preview URL, dashboard URL.</div>
+          <div class="item">Supports GitHub-push-triggered Cloudflare Pages deployments by metadata/status.</div>
+          <div class="item warntext">API credentials/project/domain are not present; fields remain Needs configuration.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="commands">
+      <h2>Project actions and command log</h2>
+      <p class="warntext">This Control Centre is currently static HTML, so buttons show the exact command, working directory, expected output state, and blockers. Wire these to a backend command runner when the hosted Control Centre supports server actions.</p>
+      <div class="commands" id="commandButtons"></div>
+      <h3>Live output / log</h3>
+      <pre class="log" id="log">Select an action to view command, working directory, success/failure expectations, and configuration warnings.</pre>
+    </section>
+
+    <section class="panel two">
+      <div>
+        <h2>Website build requirements stored</h2>
+        <div class="list">
+          <div class="item">Pages: Home, The Villa, Gallery, Services, Location, Contact.</div>
+          <div class="item">Components: header, footer, containers, heroes, cards, gallery, service sections, contact form.</div>
+          <div class="item">Style: image-led, spacious, premium Mediterranean hospitality.</div>
+        </div>
+      </div>
+      <div>
+        <h2>Template references</h2>
+        <div class="list">
+          <div class="item warntext">No downloaded villa/travel/hotel/property templates detected in this workspace.</div>
+          <div class="item">Control Centre static dashboard/card layout influenced this management page only.</div>
+          <div class="item">Villa site page patterns are specified in the saved website brief until real templates are added.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer><span>Villa Leveque project source of truth</span><span id="updated"></span></footer>
+  </main>
+<script>
+const metadata = {
+  "Project name":"Villa Leveque","Business type":"Premium villa rental website","Location":"Kassiopi, Corfu, Greece","Purpose":"Luxury private villa rental enquiries","Local project path":"Needs configuration","GitHub repo":"Needs configuration","GitHub owner":"Needs configuration","GitHub repo name":"Needs configuration","Current branch":"master","Default deployment branch":"Needs configuration","Deployment provider":"Needs configuration","Cloudflare account/project":"Needs configuration","Cloudflare domain":"Needs configuration","Production URL":"Needs configuration","Preview URL":"Needs configuration","Build command":"Needs configuration - likely npm run build","Dev command":"Needs configuration - likely npm run dev","Install command":"Needs configuration","Last build status":"Needs configuration","Last commit":"828cdbd","Last push":"Needs configuration","Pending local changes":"Yes","Deployment status":"Needs configuration"
+};
+const meta = document.querySelector('#metadata');
+Object.entries(metadata).forEach(([k,v])=>{const d=document.createElement('div');d.className='field';d.innerHTML=`<small>${k}</small><strong>${v}</strong>`;meta.appendChild(d)});
+const wd = metadata['Local project path'];
+const actions = [
+ ['Open Project','xdg-open "<project-path>"','Blocked until local project path is configured.'],
+ ['Run Dev Preview','npm run dev','Blocked until package.json/dev command is detected.'],
+ ['Run Build','npm run build','Blocked until package.json/build command is detected.'],
+ ['Git Status','git status --short --branch','Run from configured project path to show branch and modified files.'],
+ ['Commit Changes','git add . && git commit -m "Update Villa Leveque website"','Requires configured repo and reviewed changes.'],
+ ['Push to GitHub','git push origin <current-branch>','Blocked until GitHub origin remote exists.'],
+ ['Check Deployment','Cloudflare Pages dashboard/API check','Blocked until Cloudflare project/API metadata exists.'],
+ ['Open Live Site','<production-url>','Blocked until production URL is configured.'],
+ ['Open GitHub Repo','<github-repo-url>','Blocked until GitHub repo URL is configured.'],
+ ['Open Cloudflare Dashboard','<cloudflare-dashboard-url>','Blocked until Cloudflare dashboard URL is configured.']
+];
+const log=document.querySelector('#log');
+const box=document.querySelector('#commandButtons');
+actions.forEach(([name,cmd,note])=>{const b=document.createElement('button');b.className='cmd';b.innerHTML=`<b>${name}</b><code>${cmd}</code>`;b.onclick=()=>{log.textContent=`Action: ${name}\nWorking directory: ${wd}\nCommand: ${cmd}\n\nStatus: ${note}\n\nSuccess/failure: Not executed by this static page. Use OpenClaw exec or add a backend command runner to stream live output here.`};box.appendChild(b)});
+document.querySelector('#updated').textContent = 'Last updated: ' + new Date().toLocaleString();
+</script>
+</body>
+</html>

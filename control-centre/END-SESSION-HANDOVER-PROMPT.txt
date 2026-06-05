@@ -1,0 +1,40 @@
+Update the project handover before this session ends.
+
+Append only to:
+C:\Users\ai-bot\.openclaw\workspace\control-centre\PROJECT-HANDOVER.md
+
+Do not overwrite it.
+
+Include:
+- What changed in this session
+- Files created or updated
+- Current dashboard status
+- Current automation/script status
+- Any prompts saved in the prompts folder
+- Any known issues
+- Next recommended action
+- Any critical rules to preserve
+
+Also include these latest project decisions:
+- Future new sessions should start by reading PROJECT-HANDOVER.md.
+- START-NEW-SESSION-PROMPT.txt exists and should be used at the start of new Claw sessions.
+- Reference dashboard image exists at:
+  C:\Users\ai-bot\.openclaw\workspace\control-centre\references\dashboard-reference.jpeg
+- Dashboard should remain clean and simple.
+- Dashboard actions should only be:
+  View Website, Proposal, Email Draft, Open Folder.
+- Do not add back Estimated Value.
+- Add New Prospect should only ask for:
+  Business Name, Website URL or “No website”, Business Description / What I’m After, Optional Notes.
+- Sidebar buttons still need to be made functional:
+  Dashboard, Prospects, Websites, Proposals, Outreach, Reports, Settings.
+- Important prompts should be saved into:
+  C:\Users\ai-bot\.openclaw\workspace\control-centre\prompts
+- Before ending future sessions, append latest progress to PROJECT-HANDOVER.md.
+
+Do not edit MEMORY.md, DREAMS.md, SOUL.md, TOOLS.md, or AGENTS.md.
+
+When finished, confirm:
+1. PROJECT-HANDOVER.md was appended, not overwritten
+2. The exact path updated
+3. The next recommended task

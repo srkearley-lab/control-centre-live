@@ -1,0 +1,37 @@
+{
+  "targetLocations": [
+    "Brentwood",
+    "Shenfield",
+    "Hutton",
+    "Ingatestone",
+    "Billericay",
+    "Chelmsford",
+    "Romford",
+    "Essex"
+  ],
+  "targetCategories": [
+    "Barbers",
+    "Beauty salons",
+    "Dog groomers",
+    "Cafes",
+    "Restaurants",
+    "Gyms/PTs",
+    "Trades",
+    "Mechanics",
+    "Garages",
+    "Tattoo studios",
+    "Local clinics",
+    "Cleaners"
+  ],
+  "maxProspectsPerRun": 1,
+  "avoidDuplicates": true,
+  "noEmailsSent": true,
+  "qualityMinimumWebsiteBytes": 25000,
+  "discovery": {
+    "source": "OpenStreetMap Overpass public data",
+    "overpassEndpoint": "https://overpass-api.de/api/interpreter",
+    "bbox": "51.575,0.230,51.700,0.405",
+    "preferNoWebsite": true,
+    "timeoutSeconds": 35
+  }
+}

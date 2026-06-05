@@ -1,0 +1,8 @@
+Read this file first and follow it exactly before doing anything else:
+C:\Users\ai-bot\.openclaw\workspace\control-centre\PROJECT-HANDOVER.md
+
+Then confirm:
+1. The dashboard path
+2. The current business folders
+3. The A+ website generation standard
+4. The next safest action
