@@ -1,0 +1,1 @@
+document.querySelectorAll('[data-menu]').forEach(b=>b.addEventListener('click',()=>document.querySelector('.nav-links').classList.toggle('open')));document.querySelectorAll('form[data-static-form]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();f.querySelector('.form-note').textContent='Enquiry captured for preview. Connect a form endpoint before going live.';}));
