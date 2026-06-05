@@ -11,3 +11,5 @@ document.querySelectorAll('[data-video-placeholder]').forEach(b=>b.addEventListe
 const lb=document.createElement('div');lb.className='lightbox';lb.innerHTML='<button aria-label="Close">×</button><img alt=""><p></p>';document.body.appendChild(lb);const lbi=lb.querySelector('img'),cap=lb.querySelector('p');
 document.querySelectorAll('.tile img').forEach(img=>img.addEventListener('click',()=>{lbi.src=img.src;lbi.alt=img.alt;cap.textContent=img.alt;lb.classList.add('open');}));
 lb.addEventListener('click',e=>{if(e.target===lb||e.target.tagName==='BUTTON')lb.classList.remove('open');});
+
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>nav?.classList.remove('open')));
